@@ -1,0 +1,6428 @@
+0:00:00.380,0:00:04.340
+All right, welcome to Lesson 6
+欢迎来到第六课！
+
+0:00:04.380,0:00:08.760
+where we are going to do a deep dive into computer vision
+在这里，我们要深入学习机器视觉，
+
+0:00:08.820,0:00:12.820
+Convolutional Neural Networks, what is convolution
+卷积神经网络，什么是卷积，
+
+0:00:12.820,0:00:18.820
+and we are also going to learn the final regularization tricks
+我们还会学习最后一些正则化技巧，
+
+0:00:18.820,0:00:26.000
+after last lesson learning about weight decay, and /L2 regularization
+接着上节课我们所学的权值衰减/L2正则化。
+
+0:00:26.080,0:00:31.860
+I want to start by show you something I am really excited about
+一开始，我想给大家展示一下我很激动的项目，
+
+0:00:31.860,0:00:36.160
+and I had a small hand to help to create
+我在其中给予了一些帮助来创建它，
+
+0:00:36.160,0:00:45.360
+for those of you who might saw my TED.com, you might have noticed the very interesting demo that we did about four years ago
+所有看过我的TED演讲的人，可能还记得其中的一个有趣的演示，那已经是4年前的事了，
+
+0:00:45.360,0:00:50.100
+showing a way to quickly build models with unlabelled data
+展示如何快速建模，用于处理无标注的数据。
+
+0:00:50.100,0:00:58.920
+it's been 4 years, but we are finally at a point where we are ready to put it out in the world and let people use it
+到现在，4年过去了，我们已经可以将这个工具展示给世界，让大家来使用。
+
+0:00:59.020,0:01:02.640
+and the first people we are going to let use it, are you folks
+我们最先希望来尝试这个工具的人，就是你们，
+
+0:01:02.640,0:01:08.060
+so the company is called platform.ai, and the reason I am mentioning it here
+这个公司叫platform.ai, 我之所以在这里提及，
+
+0:01:08.060,0:01:14.580
+是因为它可以让你在不同数据集上构建模型来做你所能做的，
+is that it is going to let you create models on different types of datasets to what you can do now
+
+0:01:14.580,0:01:20.820
+尤其是没有标注的数据，这个工具将帮助你对数据做标注
+but to say dataset you don't have labels for yet, we are actually going to help you label them.
+
+0:01:20.820,0:01:25.580
+so this is the first time this is being shown before,
+这是我们第一次展示这个工具，
+
+0:01:25.580,0:01:32.280
+so I am pretty thrilled about it
+所有我特别兴奋，
+
+0:01:32.280,0:01:36.300
+and maybe give you a quick demo
+也许我可以给大家一个快速演示，
+
+0:01:36.300,0:01:43.540
+if you go to platform.ai and choose get started
+如果你前往platform.ai, 选择开始，
+
+0:01:43.540,0:01:47.220
+and you will be able to create a new project
+你将能够开始一个新项目，
+
+0:01:47.220,0:01:51.040
+and if you create a new project, you can either upload your own images
+如果你开启一个新项目，你可以上传自己的图片，
+
+0:01:51.040,0:01:55.360
+upload up to 500 or so works pretty well
+上传500图完全没问题，
+
+0:01:55.360,0:02:00.200
+you can upload a few thousands, but you know to start upload 500 or so, 
+你也能上传几千张，但一开始上传500张（比较安全），
+
+0:02:00.200,0:02:02.020
+they all have to be in a single folder,
+它们都需要在一个文件夹中，
+
+0:02:02.020,0:02:06.920
+and so we are assuming you have got a whole lot of images you have got any labels for
+我们假设你有很多图片，但没有标注。
+
+0:02:07.160,0:02:11.100
+or you can start with one of the existing collections if you want to play around
+或者你可以使用平台上提供的数据集来实验，
+
+0:02:11.100,0:02:14.820
+so I have started with the cars collection,
+我现在用的是车辆数据集，
+
+0:02:14.820,0:02:16.660
+kind of going back to what we were doing 4 years ago
+对应我们四年前做的演示。
+
+0:02:16.660,0:02:23.520
+and so this is what happens when you go into platform.ai,
+当你首次进入platform.ai,
+
+0:02:23.520,0:02:26.100
+and look up the collections of images you uploaded
+你查看你上传的图片，
+
+0:02:26.100,0:02:29.180
+a random sample of them will appear on the screen
+一组随机筛选的图片会出现在屏幕上，
+
+0:02:29.180,0:02:32.080
+and as you recognise probably,
+你可能会发现
+
+0:02:32.080,0:02:38.700
+they are projected from a deep learning space into a 2D space
+它们是从深度学习空间被投射2维空间，
+
+0:02:38.700,0:02:40.760
+using a pretrained model
+背后采用的是一个预训练模型。
+
+0:02:40.760,0:02:44.260
+and for this initial version, it is Imagenet model we are using
+最初的版本，我们用的是基于Imagenet的模型，
+
+0:02:44.260,0:02:47.660
+as things move along, we will be adding more and more pretraining models
+之后，我们会增添更多不同的预训练模型，
+
+0:02:47.660,0:02:51.160
+what I am going to do is,
+我接下来要做的是
+
+0:02:51.160,0:02:58.140
+I want to add labels to this dataset representing which angle a photo of a car is taking from
+给数据做车辆牌照角度的标注，
+
+0:02:58.140,0:03:02.880
+this is something which actually Imagenet (models) is going to be bad at, isn't it
+这是ImageNet模型不擅长解决的问题，
+
+0:03:02.880,0:03:08.760
+because Imagenet has learn to recognise the difference between cars versus bicycles
+因为Imagenet的模型学会的是如何对汽车与自行车的区分，
+
+0:03:08.760,0:03:12.840
+and Imagenet (models) knows that angle you take a photo on, actually doesn't matter.
+并且认为拍照角度对分类没有意义。
+
+0:03:12.840,0:03:15.440
+so we want to try to create labels
+所以，我们想要标注的内容，
+
+0:03:15.440,0:03:20.020
+using the kind of things that actually Imagenet specifically learns to ignore
+恰好是Imagenet模型学会要忽略的特征。
+
+0:03:20.060,0:03:25.700
+so the projection that you see, we can click this layer button at the top
+这些投射的图片，我们可以点击上方的"layer"按钮，
+
+0:03:25.700,0:03:31.340
+to switch to user projection using a different layer of a neural net
+做投射转换，转换到不同层的投射，
+
+0:03:31.340,0:03:35.840
+so here is the last layer, which is going to be a total waste of time for us, 
+这是最后一层（的投射），对我们而言绝对是浪费时间，
+
+0:03:35.840,0:03:41.940
+because it is really going to be projecting things based on what kind of things it think it is 
+因为这些投射是基于物体类别而做的；
+
+0:03:41.940,0:03:44.840
+and the first layer is probably going to be a waste of time for us as well
+而第一层，也极可能对我们是浪费时间，
+
+0:03:44.840,0:03:49.020
+because there is very little interesting semantics content there
+因为第一层所含的有趣的语义内容是极少的，
+
+0:03:49.020,0:03:55.580
+but if I go into the middle, in layer three, we may well be able to find some differences there.
+但是如果选择第三层，我们很可能找到一些明显的差异；
+
+0:03:55.580,0:03:59.900
+so what you can do is, you can click on the projection button here 
+接下来我们可以做的是，点击“projection”按钮，
+
+0:03:59.900,0:04:01.780
+you can actually just press up and down,
+实际上我们可以按上下箭头键
+
+0:04:01.780,0:04:06.660
+rather than just pressing the arrow at the top, to switch between projections
+做projection之间的切换，而不是上方的箭头
+
+0:04:06.660,0:04:09.000
+or left and right to switch between layers
+或者是左右箭头键做层之间的切换，
+
+0:04:09.000,0:04:13.980
+and what you can do is, you can basically look around until you notice,
+我们在里面四处看看，直到你发现
+
+0:04:13.980,0:04:18.060
+that there is a projection which is kind of separated out things you are interested in
+某个投射将你感兴趣图片做了区分，
+
+0:04:18.140,0:04:21.260
+so this one is actually, I noticed
+我发现，这个投射里，
+
+0:04:21.260,0:04:33.640
+that it got a whole bunch of cars that are kind of from the top-front front-right over here
+有一些汽车是从右前方被拍照，它们都在这个区域，
+
+0:04:33.640,0:04:38.020
+okay, so if we zoom in a little bit, we can double check,
+如果我们放大看看，可以进一步确认，
+
+0:04:38.020,0:04:39.800
+like yeah, that looks pretty good
+看起来不错，
+
+0:04:39.800,0:04:43.800
+they are all kind of front-right, we can click on here to go to selection mode
+它们的确都差不多是从右前方拍照，我们可以点击这里进入选择模式，
+
+0:04:43.800,0:04:49.360
+and we can grab a few, and then you should check
+选中一系列图片，然后你可以检查一下你选中的图片。
+
+0:04:49.360,0:04:52.920
+and so what we are doing here, is trying to take advantage of combination of human plus machine
+我们在这里所做的是，尝试将机器和人工的能力相结合，
+
+0:04:52.920,0:04:57.320
+the machines are pretty good at quickly doing calculations
+机器擅长快速计算，
+
+0:04:57.320,0:05:00.420
+as a human, I am pretty good at looking at a lot of things at once
+人类能快速一次性查看大量图片，
+
+0:05:00.420,0:05:01.580
+and seeing the odd one out
+挑选出奇怪的图片，
+
+0:05:01.580,0:05:04.660
+so this case I am looking at cars which aren't front-right
+这里我在查看不是右前方拍照的车辆图，
+
+0:05:04.660,0:05:07.500
+so by laying them in front of me, I can do that really quickly
+通过将图片展开排列好，我可以很快找出不合要求的图片，
+
+0:05:07.500,0:05:10.080
+so okay definitely that one, so just click on the ones you don't want
+然后点击你挑选出来的不要的图片，
+
+0:05:10.080,0:05:17.400
+all right, all good, so then you can just go back,
+好的，选好了，你可以直接返回
+
+0:05:17.400,0:05:21.480
+so then what you can do is you can either put them into a new category by typing to create new labels
+接下来你可将剩下的图片放入新建的文件夹中，通过点击新建标注来新建
+
+0:05:21.480,0:05:25.820
+or you can click on one of the existing ones, so before I came I just created a few
+或者放入已建好的标注文件夹中，我来之前新建了一些新标注，
+
+0:05:25.820,0:05:27.960
+so here is front right, just click on it here, there we go
+这里有一个（右前方标注的）文件夹，点击这里就可以了。
+
+0:05:28.040,0:05:33.340
+so, that's the basic idea
+这就是一个基本的工作流程，
+
+0:05:33.340,0:05:36.980
+that you kind of keep flipping through different layers or projections,
+你持续在不同层和投射之间切换，
+
+0:05:36.980,0:05:39.200
+trying to find groups representing things you are interested in
+尝试找出你感兴趣的图片组，
+
+0:05:39.200,0:05:44.760
+and then over time, you will start to realize that there is something that are little bit harder
+时间久了，你会意识到有些东西比较难，
+
+0:05:44.760,0:05:48.100
+so for example, I am having trouble of finding sides
+比如，我发现找侧面照比较难找，
+
+0:05:48.100,0:05:51.720
+so what I can do is, I can see over here there are a few sides 
+我可以做的是，我发现这里有几张侧面照的图片，
+
+0:05:51.720,0:06:04.500
+so I can zoom in here, and click on a couple of them, this one and this one and that one, and that one, Okay
+于是我放大这里，选中几张侧面照车辆图，这个，这个，那个，还有那个，好了
+
+0:06:04.500,0:06:12.540
+ok, I mean I will say "find similar", and so this is going to basically looking at the projection space 
+然后点击"find similar", 系统将查看当前投射下的图片
+
+0:06:12.540,0:06:16.600
+not just the images that are currently displayed, but all of the images you uploaded
+不仅仅是展示出来的这些图片，而是所有上传的图片，
+
+0:06:16.600,0:06:22.900
+and hopefully I will be able to label a few more sides images at that point
+希望能标注出更多的侧面照的图片，
+
+0:06:22.900,0:06:28.440
+so it is going through and checking all of the images you uploaded
+现在系统在筛选所有上传的图片，
+
+0:06:28.440,0:06:35.540
+and to see if any of them have projections in this space, which are similar to the ones I have selected
+查看这个投射中到任意照片是否与选中图片相似的图片，
+
+0:06:35.540,0:06:41.080
+and hopefully we will find a few more what I am interested in
+希望能自动找出一些我感兴趣的图片，
+
+0:06:41.120,0:06:47.540
+now, if I want to find a projection 
+现在，如果我想找出某个投射，
+
+0:06:47.540,0:06:50.560
+that separate the sides from the front-right
+能够分离侧面照和右前方照，
+
+0:06:50.560,0:06:52.200
+I can click on each of those two
+我可以点击它们，
+
+0:06:52.200,0:06:57.680
+and over here, this button is called switch to the projection that maximize the distance between the labels
+然后点击这里，它的功能是切换到一个新的投射，来让这两个类别的图片之间的差异最大化，
+
+0:06:57.680,0:07:03.620
+so now what it is going to do is to try to find the best projection that separate out those classes
+接下来系统要做的就是尝试寻找最优的投射，可以有最大化分离这两个不同类的图片，
+
+0:07:03.620,0:07:13.020
+so the goal here is help me visually inspect and quickly find a bunch of things that I can use to label
+这里的目标是帮助我在视觉上快速查看，找出合适标注的图片。
+
+0:07:13.020,0:07:17.460
+so, they are kind of the key features
+这些就是系统的主要功能。
+
+0:07:17.460,0:07:22.160
+and it's done a good job, you can see down here, we've now got a whole bunch of sides
+你看，系统表现不错，我们有了一系列的侧面图，
+
+0:07:22.160,0:07:25.720
+which I can now grab, because I was having a lot of trouble finding them before
+我现在可以选中它们，之前寻找它们特别困难，
+
+0:07:25.720,0:07:31.020
+and it is always worth double checking
+反复检查这些图片是必要的，
+
+0:07:31.100,0:07:35.580
+and it is kind of interesting to see how the neural nets behave
+有趣的是，这个过程中神经网络的行为表现，
+
+0:07:35.580,0:07:38.520
+there seems to be more sport cars in this group than average as well, 
+在这些找出的图片中，出现了更多的赛车照片，
+
+0:07:38.520,0:07:42.600
+so it kind of found side angles of sport cars, so that's kind of interesting.
+很多都是赛车的侧面照，这倒是挺有趣的，
+
+0:07:42.600,0:07:47.320
+so I have got those, now I will click sides, and there we go
+它们确认都是侧面照后，点击侧面文件夹将他们放入。
+
+0:07:47.320,0:07:55.360
+so once you have done that a few times, I find if you have got a hundred or so labels
+这样操作几次，直到你整理收纳的图片有上百张，
+
+0:07:55.360,0:08:01.960
+you can then click on the train model button, and it would take a couple of minutes, and come back and show you your trained model
+然后你可以点击训练按钮，系统会开始用这些图片训练你的模型，只需几分钟即可训练完毕。
+
+0:08:02.040,0:08:05.340
+and after it is trained, which I did it on a smaller number of labels earlier
+训练完毕后，我稍早前用少数图片做了训练，
+
+0:08:05.340,0:08:09.760
+you can then switch this varied opacity button
+然后点击这个“varied"按钮，
+
+0:08:09.760,0:08:13.980
+and it will actually fade out the ones that are already predicted well
+系统会将预测良好的图片颜色弱化，
+
+0:08:13.980,0:08:18.860
+and it will also give you an estimate as to how accurate they think the model is
+同时估算你模型的精度水平。
+
+0:08:18.860,0:08:22.240
+the main reason I mention this for you is 
+之所以告诉大家这个平台，
+
+0:08:22.240,0:08:26.580
+that so that you can now click the download button, and it will download the predictions
+是因为如果点击下载，系统会为你下载预测值，
+
+0:08:26.580,0:08:28.620
+which is what we would hope to be interesting for most people
+我们希望大多数人会感兴趣，
+
+0:08:28.620,0:08:31.180
+but what I think would be interesting for you as deep learning student, 
+我认为你们之所以会感兴趣，作为深度学习学员，
+
+0:08:31.180,0:08:33.200
+is it will download the labels, 
+是因为系统会下载数据标注，
+
+0:08:33.200,0:08:38.460
+so now you can use that labeled subset of data
+你就能使用这一小部分标注过的数据，
+
+0:08:38.460,0:08:41.120
+along with the unlabelled set that you haven't labelled yet
+加上还未标注过的数据，
+
+0:08:41.120,0:08:44.620
+to see if you can build a better model
+来试试能够训练出一个更好的模型，
+
+0:08:44.620,0:08:46.780
+than platform.ai has done for you
+看能否比系统刚刚训练的模型更好，
+
+0:08:46.780,0:08:53.900
+to see if you can use the initial set of data, to kind of get going to create model and stuff which you were not able to label before
+看看你能否用最初的数据集（用你之前无法标注的数据）来构建模型等工作。
+
+0:08:53.940,0:08:59.140
+clearly, there are something that this system is better at than the others, 
+很明显，这个系统在某些方面能做的比其他系统更好，
+
+0:08:59.140,0:09:06.140
+the things that require, you know really zoom in closely, taking very very close inspection
+比如，有些东西需要不断放大查看细节，
+
+0:09:06.160,0:09:12.220
+this isn't going to work very well, it is really designed for things that the human eye can kind of pick up fairly readily
+这个系统不会表现很好，它的设计决定了它不可能像人眼一样轻松识别差异。
+
+0:09:12.220,0:09:18.600
+but we would love to get feedback as well, and you can click on the help button to get feedback
+但我们希望能获得反馈意见，你可以按下“help"按钮来反馈意见，
+
+0:09:18.600,0:09:25.600
+and also there is a platform.ai discussion topic in our forum
+同时在论坛里有一个关于platform.ai的讨论，
+
+0:09:25.640,0:09:33.560
+so, Arshak, if you can stand up, Arshak is the CEO of the company, he will be there and helping out answering questions and so forth
+Arshak, 请你站起来，Arshak 是公司的CEO，他会在论坛里回答问题。
+
+0:09:33.560,0:09:37.700
+yeah, hope people find out that useful
+希望platform.ai对大家有帮助，
+
+0:09:37.700,0:09:45.300
+it's been many years getting to this point, I am glad we are finally there.
+我们耗费了多年时间将它完善到目前的状态，感觉很欣慰。
+
+0:09:45.500,0:09:50.820
+Okay, so one of the reasons why I want to mention it today
+之所以今天要提到这个，
+
+0:09:50.820,0:09:55.900
+is that we are going be doing a big dive into convolutions later in this lesson
+是因为稍后我们会深入学习卷积，
+
+0:09:55.900,0:10:03.860
+so I am going to circle back to this trying to explain a little more about how that is working under the hood, and give you kind of a sense of what is going on
+我们会迂回到卷积来讲解它背后的工作原理，让大家有所了解，
+
+0:10:03.860,0:10:09.980
+but before what we do, we have to finish off last week's discussion of regularization
+在那之前，我们需要结束上节课的关于正则化的讨论。
+
+0:10:10.060,0:10:16.380
+and so we were talking about regularization, and specifically in the context of tabular learner
+我们对于正则化的探讨，是在表格数据背景下进行的，
+
+0:10:16.380,0:10:23.540
+and because the tabular learner, this is the forward method, sorry, this is the __init__ method of tabular learner
+这是__init__函数，源于tabular_Learner这个类，
+
+0:10:23.540,0:10:28.080
+our goal was to understand everything, here, and we are not quite there yet.
+我们的目标是了解这里的所有代码，我们还差一点，
+
+0:10:28.080,0:10:33.160
+last week we were looking at the ADULT dataset
+上周我们有的是ADULT_SAMPLE数据集，
+
+0:10:33.160,0:10:38.360
+it is a really simple, kind of overly simple dataset, for toy purposes
+是一个过于简单的数据集，主要是用来玩的，
+
+0:10:38.420,0:10:43.220
+so this week let's look at a dataset which is much more interesting, a kaggle competition dataset
+所以本周让我们来看一个更有趣的数据集，是kaggle竞赛数据集，
+
+0:10:43.220,0:10:47.160
+so we know the kind of best in the world
+所以我们可以知道世界最好模型表现是怎样的，
+
+0:10:47.160,0:10:53.220
+you know the kaggle competition results tend to be much harder to beat than the academic state of the art result tend to beat
+而且kaggle竞赛结果往往比学术论文的SOTA精度更难被打败，
+
+0:10:53.220,0:10:57.480
+because a lot more people work on kaggle competitions than most of academic datasets
+因为有更多人参与到kaggle竞赛中来
+
+0:10:57.520,0:11:01.260
+so it is a really good challenge to trying do well on a kaggle competition dataset
+想要在kaggle竞赛中获得好名次，挑战是很大的。
+
+0:11:01.260,0:11:09.340
+so this one the Rossmann dataset, they got 3000 drug stores in Europe
+这个Rossmann数据集，Rossmann有3000药店在欧洲，
+
+0:11:09.340,0:11:15.740
+and you are trying to predict how many products they are going to sell in the next couple of weeks
+我们要预测的未来几周他们能卖出多少产品
+
+0:11:15.780,0:11:17.600
+so one of the interesting things about this
+其中有趣的一点是，
+
+0:11:17.600,0:11:25.540
+is the test set for this is from a time period that is more recent than the training set,
+测试集数据的时间离现在更近，而训练集的时间相对较远，
+
+0:11:25.680,0:11:26.620
+and this is really common right 
+这很常见，
+
+0:11:26.620,0:11:30.460
+if you want to predict things, there is no point to predict things that is in the middle of training set
+因为如果你要预测，没有理由预测训练集所在的时间段的数据，
+
+0:11:30.460,0:11:32.580
+you want to predict things in the future
+你想要的是预测未来。
+
+0:11:32.580,0:11:35.860
+another interesting things about it is 
+另一个有趣的地方是，
+
+0:11:35.860,0:11:37.500
+the evaluation metric
+评估函数，
+
+0:11:37.500,0:11:40.280
+they provided is the root mean squared percent error
+它提供的是RMSPE（均方根百分比误差），
+
+0:11:40.280,0:11:42.460
+this is just a normal root mean square error
+这是正常的RMSE均方根误差，
+
+0:11:42.460,0:11:46.500
+except we go actual minus prediction divided by actual
+只是增加了一步，(y_target - y_pred)/y_target
+
+0:11:46.500,0:11:51.320
+in other words, it is the percent error, that we are taking the root mean squared of
+换言之，这就是百分比误差的均方根
+
+0:11:51.320,0:11:54.060
+So there is a couple of interesting features
+这些就是我说的有趣的地方。
+
+0:11:54.140,0:11:57.180
+always interesting to look at the leaderboard
+排行榜也是值得一看的，
+
+0:11:57.180,0:12:00.220
+so the leaderboard winner was 0.1
+第一名的成绩是0.1,
+
+0:12:00.220,0:12:06.460
+the paper we roughly replicated was 0.105, 0.106
+我们复现的论文的成绩是0.105，0.106
+
+0:12:06.460,0:12:19.580
+and the tenth place out of 3000 was 0.11ish, a bit less
+第十名（在3000多个队伍中）的成绩是0.11左右，稍微少一点。
+
+0:12:19.640,0:12:23.400
+so, we are going to skip over a little bit
+我们会跳过一些内容，
+
+0:12:23.400,0:12:31.020
+which is the data that is provided here, they provided us a small number of files
+是关于数据，竞赛提供了一小组数据集，
+
+0:12:31.020,0:12:35.700
+but they also let competitors provide additional external data,
+但允许竞赛队伍提供额外的外来数据，
+
+0:12:35.700,0:12:37.740
+as long as they share it with all other competitors
+只要他们将数据也分享给其他竞争者，
+
+0:12:37.740,0:12:42.960
+and so in practice, the dataset we are going to use contains I can't remember, 6-7 tables
+所以，实际操作中我们使用的数据表格有6-7个，
+
+0:12:42.960,0:12:49.380
+the way you join tables and stuff isn't really part of a deep learning course
+如何连接表格等操作并不是深度学习课程的一部分，
+
+0:12:49.380,0:12:54.360
+so I am going to skip over it, and instead I am going to refer you to Introduction to Machine Learning for coders 
+这里我会跳过，但大家可以去我们的机器学习课程，
+
+0:12:54.360,0:12:58.320
+which will take you step by step for data preparation for this
+在那里我会一步一步教大家如何做数据处理。
+
+0:12:58.320,0:13:10.560
+we provided for you in rossmann_data_clearn, so you will see the whole process there
+我们为大家提供了，rossmann_data_clean.ipynb 在这里可以看到全处理过程。
+
+0:13:10.560,0:13:17.280
+so you will need to run through that notebook to create these pickle files that we read here
+你需要跑一遍这个notebook来生成这些pickle文件，
+
+0:13:17.280,0:13:19.920
+can you see these in the back ok? great
+你们从后面看得清吗？好的
+
+0:13:19.920,0:13:29.200
+I just want to mention one particular interesting part of the rossmann_data_clearn notebook
+我只想指出一个有趣的地方（在这个rossman_data_clean.ipynb中)，
+
+0:13:29.200,0:13:32.080
+which you will see there is something that says add_datepart
+也就是你会看到一个较add_datepart函数，
+
+0:13:32.160,0:13:34.480
+and I want to explain what is going on here
+我想来解释以下，
+
+0:13:34.480,0:13:37.340
+I have been mentioning for a while we are going to look at time series
+我讲过多次会来学习时间序列，
+
+0:13:37.340,0:13:43.040
+and pretty much everybody who I have been spoken to about it has assumed I am going to do some kind of Recurrent Neural Network
+所有和我谈论过这个话题的人都认为我会用到RNN循环神经网络，
+
+0:13:43.040,0:13:44.880
+but I am not
+但我不用，
+
+0:13:44.880,0:13:51.060
+Interestingly, the main academic group that studies time series is econometrics, 
+有趣的是，学习时间序列的学术主要团体是计量经济学，
+
+0:13:51.060,0:13:54.780
+but they tend to study one very specific kind of time series 
+但他们倾向于学习某一种类型的时间序列，
+
+0:13:54.780,0:14:03.240
+which is the only data you have is a sequence of time point of one thing, that's the only thing you have is a sequence
+也就是他们唯一使用的数据就是一个单一变量的时间序列，
+
+0:14:03.240,0:14:05.860
+in real life that's almost never the case
+在现实世界里这几乎是不存在的，
+
+0:14:05.860,0:14:17.420
+Normally, you know, we would have some information about the store that represent, people that represent, we would have metadata, we would have sequence of other things measured in similar time period or different time period
+通常，我们会有一些关于店面的信息，关于客户的信息，元数据，以及其他信息的时间序列，有的在相同时间段，有的在不同时间段，
+
+0:14:17.420,0:14:23.840
+and so most of time, I find in practice 
+多数时候，我发现在实践中，
+
+0:14:23.840,0:14:29.480
+the state of the art result, when it comes to competitions, more real world dataset
+SOTA结果，尤其是在竞赛中针对真实世界的数据时，
+
+0:14:29.480,0:14:38.420
+don't tend to use recurrent neural networks, but instead they tend to take the time piece, which in this case, it was date we were given in the data
+不倾向使用RNN，但经常会将时间，如date这个数据，
+
+0:14:38.420,0:14:47.080
+and they add a whole bunch of metadata, so in our case for example, we added day of week, so we are given the date, we added day of week
+给它加上一系列元数据，这里我们添加了星期几的信息，
+
+0:14:47.080,0:14:51.940
+year, month, week of year,
+哪一年，哪个月，一年里的哪一周，
+
+0:14:51.940,0:14:55.760
+day of month, day of week, day of year
+一个月中的哪一天，一周里的哪一天，一年里的哪一天，
+
+0:14:55.760,0:14:59.180
+and a bunch of boolean, is it a month start or end, quarter, year start or end, 
+以及一系列布尔值判断是否是一个月的开始或末尾，一个季度的始末，一年的开始或末尾，
+
+0:14:59.180,0:15:02.320
+elasped time since the 1970, and so forth
+自1970一来的elapsed time所经历的时间,
+
+0:15:02.400,0:15:06.800
+if you run this one function add_datepart and pass in date, 
+如果你跑这个函数，并给予数据的“Date”信息，
+
+0:15:06.800,0:15:09.300
+it will add all these columns to your dataset for you
+这个函数将为你添加刚才所有那些数据列信息，
+
+0:15:09.300,0:15:11.660
+and so what that means 
+这有什么意义呢？
+
+0:15:11.660,0:15:18.520
+is that let's take a very reasonable example, purchasing behavior, probably changes on payday
+让我们据一个合理的例子，购买行为，通常在发薪日有所改变，
+
+0:15:18.520,0:15:20.660
+payday might be the fifteenth of the month,
+发薪日可能是一个月的第15日，
+
+0:15:20.660,0:15:24.220
+so if you have a thing here called day of month here
+如果你有一列数据是关于一个月内的某一天的数据，
+
+0:15:24.220,0:15:34.260
+then it will be able to recognise every time something is a 15 there, and associated with a higher, in this case an embedding matrix, value
+模型将发现15日对应一个较高的值在嵌入矩阵里。
+
+0:15:34.260,0:15:42.440
+so this way, it basically, we kind of expect a neural net to do all of the feature engineering for us 
+我们是期望神经网络自动完成所有的特征工程，
+
+0:15:42.440,0:15:47.140
+we can expect it to kind of find nonlinearity and interactions and stuff like that
+期望它还能找到非线性关系等等，
+
+0:15:47.140,0:15:52.040
+but for something like, taking a date , like this, 
+但对于一个日期数据（未处理），像这样的，
+
+0:15:52.040,0:15:56.200
+and figuring out the fifteenth of the month is something when interesting things hapeen
+然后能发现一个月的第15日是有趣的事会发生的日子，（实在太难），
+
+0:15:56.200,0:15:59.620
+it is much better if we can provided the information for it
+如果我们能提供这些信息（预处理好的时间序列），那就最好不过了
+
+0:15:59.700,0:16:02.660
+so, this is a really useful function to use
+所以，这是一个非常有用的函数，
+
+0:16:02.660,0:16:08.480
+once you have done this, you can treat many kinds of time series problems as regular tabular problems
+一旦完成这步操作，你可以将许多种类的时间序列问题转化为表格数据问题，
+
+0:16:08.480,0:16:10.680
+I said many kinds, not all
+我是说许多种类，不是全部的类别，
+
+0:16:10.680,0:16:18.480
+you know if there is very complex kind of state, involved in a time series, such as you know equity trading, something like that
+如果是非常复杂状态的时间序列，比如股票交易等，
+
+0:16:18.480,0:16:22.620
+it probably won't be the case, this won't be the only thing you need
+恐怕这种转换不成立，或者以上的这些操作是不够的。
+
+0:16:22.620,0:16:27.700
+but in this case, it will get us really good result
+但是在这个例子里，这个方法可以帮助我们获得非常好的表现。
+
+0:16:27.700,0:16:30.540
+in practice, most of time I found it works well
+在实践中，我发现这个方法多数情况下效果不错。
+
+0:16:30.640,0:16:34.660
+tabular data is normally in pandas
+表格数据，通常需要用pandas来处理，
+
+0:16:34.660,0:16:37.060
+so we just stored them in standard python pickle find
+所以处理后的数据被存储在标准的pickle 文件里，
+
+0:16:37.060,0:16:38.960
+we can read them in
+通过这个函数，能读取数据，
+
+0:16:38.960,0:16:41.080
+we can take a look at the first five records
+我们可以看看前5个数据样本，
+
+0:16:41.080,0:16:49.340
+so the key thing here is, we are trying to on a particular date, for a particular store id, we want to predict the number of sales
+理解数据关键点：在某一个具体的日期里，某一个店面，我们要预测店面的销售额，
+
+0:16:49.340,0:16:53.240
+sales is a dependent variable
+销售额是应变量（dependent variable）
+
+0:16:53.400,0:16:58.100
+so the first thing I am going to show you is something called PreProcessors
+首先我要展示给大家看的是，叫做预处理，
+
+0:16:58.100,0:17:00.160
+you have already learnt about transforms
+你们已经学过变形处理，
+
+0:17:00.160,0:17:06.480
+transforms are bit of codes, that run every time something is grabbed from the dataset
+变形处理，是一组代码，每次模型读取数据时，会对数据做处理，
+
+0:17:06.480,0:17:09.820
+so it is really good for data augmentation, that we will learn about today 
+所以对数据增强很合适，我们今天会学到数据增强，
+
+0:17:09.820,0:17:13.660
+which is it is going to get a different random value every time it sampled
+每次提取数据时数据增强都会是随机值（有不一样的变形效果）
+
+0:17:13.800,0:17:16.900
+PreProcessors are like transforms
+预处理和变形处理很相似，
+
+0:17:16.900,0:17:21.120
+but they are a little bit different, which is they run once
+但有一点区别，也就是它们只需要跑一遍，
+
+0:17:21.120,0:17:23.000
+before you do any training 
+而且是在训练之前，
+
+0:17:23.000,0:17:28.440
+and really importantly, they run once on the training set
+很重要的是，它们只在训练集上跑一次，
+
+0:17:28.440,0:17:34.968
+and then any kind of state or metadata that is created is then shared with a validation and test sets
+然后所有生成的状态和元数据，都需要与验证集和测试集共享，
+
+0:17:34.968,0:17:37.300
+let me give you an example
+我来给大家一个例子。
+
+0:17:37.400,0:17:40.080
+when we have been doing image recognition
+当我们做图片识别/分类时，
+
+0:17:40.080,0:17:41.940
+and we have a set of classes
+我们有一些类别，
+
+0:17:41.940,0:17:43.660
+for like all the different pet breeds
+比如各种不同的宠物类别，
+
+0:17:43.660,0:17:45.340
+and they have been turned into numbers
+他们被转化为数字，
+
+0:17:45.340,0:17:48.200
+the thing that actually doing this for us 
+做这些转化的函数，
+
+0:17:48.200,0:17:50.640
+is the PreProcessor that is created in the background
+就是在背后运行的预处理函数，
+
+0:17:50.640,0:17:57.300
+so that make sure the classes for the training set are the same as the classes for the validation and classes for the test set
+以确保训练集的类别与验证集和测试集的类别是一样的。
+
+0:17:57.400,0:18:00.540
+so we are going to do something very similar here
+在这里，我们要做的很类似。
+
+0:18:00.540,0:18:05.380
+for example, if we create a little small subset of data for playing with 
+例如，如果我们提取一个小部分数据来实验，
+
+0:18:05.380,0:18:08.240
+this is a really good idea when you start with a new dataset
+这是一个非常棒的想法，当你开始实验一个新数据集时。
+
+0:18:08.280,0:18:11.300
+so, I just grabbed 2000 id at random
+所以，我随机提取了2000个序列号，
+
+0:18:11.300,0:18:18.540
+and then I am just going to grab a little training set and a little test set, half and half of 2000 ids
+然后构建了训练集和验证集，各占一半的系列号，
+
+0:18:18.540,0:18:20.900
+and just going to grab 5 columns
+然后调取5列数据，
+
+0:18:20.900,0:18:23.660
+ok, and then we are just going to play around with it. nice and easy
+然后我们就可以开始实验了。简单明了。
+
+0:18:23.720,0:18:27.320
+so here are the first few of those, from the training set
+这里是前几行数据，来自训练集，
+
+0:18:27.320,0:18:30.120
+and you can see one of them is called PromoInterval
+其中一列叫"promoInterval",
+
+0:18:30.120,0:18:32.480
+and it has these strings
+里面有这样的字符串，
+
+0:18:32.520,0:18:37.240
+and sometimes it is missing, in pandas missing is NaN, 
+有时则是数据缺失，pandas中数据缺失用“NaN”表示。
+
+0:18:39.640,0:18:43.040
+so the first PreProcessor I will show you is, Categorify
+第一个预处理函数是，Categorify，
+
+0:18:43.040,0:18:45.820
+Categority basically does the same thing
+Categorify基本上做相同的事情，
+
+0:18:45.820,0:18:50.440
+that data.classes thing for image recognition does for dependent variable 
+与data.classes在图片分类问题中为应变量所做的事一样，
+
+0:18:50.440,0:18:52.040
+it is going to take the strings
+也就是拿着这些字符串，
+
+0:18:52.040,0:18:54.840
+it is going to find all of the possible unique values of it 
+找出所有独特的字符串，
+
+0:18:54.840,0:18:56.780
+and it is going to create a list of them
+并放入一个列表中，
+
+0:18:56.780,0:18:59.560
+and it is going to turn the strings into numbers
+然后将列表中的字符串转化为数字。
+
+0:18:59.560,0:19:01.720
+so, if I call it on my training set
+所以，如果将该函数用于训练集，
+
+0:19:01.720,0:19:03.920
+that will create categories there
+这将为这几列数据创建categories类别。
+
+0:19:03.920,0:19:06.020
+and I call it on my test set
+然后对测试集使用该函数，
+
+0:19:06.020,0:19:08.340
+passing in test equals True
+设置test=True，
+
+0:19:08.340,0:19:11.660
+that makes sure it is going to use the same categories that I had before
+这将确保测试集使用与训练集相同的类别
+
+0:19:11.780,0:19:14.420
+and now when I say dot head()
+现在，当我们执行.head()，
+
+0:19:14.420,0:19:15.800
+it looks exactly the same
+看上去一模一样，
+
+0:19:15.800,0:19:20.440
+and that's because pandas turned it into a categorical variable
+这是因为pandas将它（promoInterval）变成了一个类别变量，
+
+0:19:20.440,0:19:23.180
+which internally is storing numbers
+内在是存储数字，
+
+0:19:23.180,0:19:26.100
+but externally is showing the strings
+外在展示的是字符串，
+
+0:19:26.100,0:19:28.600
+but we can look inside PromoInterval
+但我们可以查看promoInterval的里面，
+
+0:19:28.600,0:19:32.920
+to look at the cat.categories
+查看cat.categories, 这些都是标准的pandas格式，
+
+0:19:33.040,0:19:36.500
+to show me a list of all of them,
+展示一个列表，
+
+0:19:36.500,0:19:38.500
+what we would call classes in fastai
+里面包含了所有的类别，至少我们在fastai中会这么称呼
+
+0:19:38.640,0:19:42.360
+or would be called just categories in pandas,
+或者就叫做pandas中的类别
+
+0:19:42.360,0:19:45.160
+and so if I look at cat.codes,
+所以，如果我们查看cat.codes
+
+0:19:45.160,0:19:49.940
+you can see here this list here is the numbers that actually stored
+你会看到这个列表里存储的数值
+
+0:19:49.980,0:19:52.360
+-1，-1， 1， -1， 1 right?
+
+0:19:52.360,0:19:54.720
+what are these -1s?
+这些-1是什么意思？
+
+0:19:54.720,0:19:59.580
+the -1s represent NaNs,
+这些-1代表NaN
+
+0:19:59.580,0:20:00.440
+they represent missing,
+而NaN代表不存在
+
+0:20:00.440,0:20:04.620
+so pandas uses the special code -1  to mean missing.
+所以，pandas用特殊代码-1来表示缺失
+
+0:20:04.620,0:20:06.000
+Now as you know,
+现在你知道
+
+0:20:06.000,0:20:08.100
+these are going to end up in an embedding matrix,
+这些数值最终都会对应上嵌入矩阵中的值
+
+0:20:08.100,0:20:12.920
+and we can't look up item -1 in an embedding matrix,
+但我们无法用-1去查找嵌入矩阵中的值
+
+0:20:12.920,0:20:17.220
+so internally in fastai we add 1 to all of these.
+所以，fastai在后台对所有这些值都加上1
+
+0:20:17.320,0:20:20.980
+Another useful preprocessor is FillMissing,
+另一个好用的预处理器是FillMissing
+
+0:20:20.980,0:20:24.200
+and so again you can call it on the dataframe,
+同理，你可以将它用于dataframe
+
+0:20:24.200,0:20:26.600
+you can call it on test (small_test_df) passing test=True,
+也可以用于测试集，同时设置test=True
+
+0:20:26.600,0:20:33.100
+and this will create for everything that's missing or anything that has a missing value,
+它会将所有缺失信息的数据
+
+0:20:33.100,0:20:36.820
+it will create an additional column with a column name + "_na",
+加入到一个新的列中，名称是原列名+“na"
+
+0:20:36.820,0:20:38.980
+so (for example) 'competitionDistance_na',
+例如，这里的新列名是'CompetitionDistance_na',
+
+0:20:39.040,0:20:43.540
+and it will set it for true (small_train_df['CompetitionDistance_na']==True) for anytime (or anything) that was missing,
+新列中，对应的缺失数据的位置被赋值为True
+
+0:20:43.540,0:20:50.400
+and then what we do is we replace CompetitionDistance with the median for those (all CompetitionDistance values).
+然后我们要做的是，将均值赋值到这些缺失信息的CompetitionDistance
+
+0:20:50.400,0:20:51.640
+Why do we do this?
+为什么我们要这么做呢？
+
+0:20:51.640,0:20:54.920
+well, because very commonly the fact that something is missing,
+因为通常当某个数据缺失时，
+
+0:20:54.920,0:20:57.060
+is of itself interesting,
+这本身就很有意思
+
+0:20:57.060,0:21:00.300
+it turns out the fact it is missing,
+我们发现数据缺失这种情况
+
+0:21:00.300,0:21:02.260
+helps you predict your outcome.
+能帮助你做预测
+
+0:21:02.260,0:21:06.760
+all right, so we certainly want to keep that information in a convenient Boolean column,
+所以，我们当然要将这一信息记录在一个布尔值的数据列里
+
+0:21:06.760,0:21:09.660
+so that our deep learning model can use it to predict things.
+从而让我们的深度学习模型来利用它做预测
+
+0:21:09.660,0:21:13.960
+But then we need CompetitionDistance to be a continuous variable,
+但我们需要CompetitionDistance作为一个连续变量
+
+0:21:13.960,0:21:16.220
+so we can use it in the continuous variable part of our model,
+从而能将它作为模型的一个连续变量来使用
+
+0:21:16.220,0:21:19.180
+so we can replace it with almost any number, right?
+所以，我们能用任意数值来取代缺失数据
+
+0:21:19.180,0:21:22.240
+because if it turns out the missing is important,
+因为既然缺失数据很重要，
+
+0:21:22.240,0:21:28.280
+then it can use the interaction of CompetitionDistance_na and CompetitionDistance to make predictions,
+那么我们可以结合CompetitionDistance_na与CompetitionDistance来做预测，
+
+0:21:28.280,0:21:30.920
+so that's what FillMissing does.
+这就是FillMissing的功能。
+
+0:21:31.000,0:21:34.340
+You don't have to manually call preprocesses yourself,
+你不必手动执行这些预处理
+
+0:21:34.340,0:21:44.400
+when you call any kind of ItemList creator,
+当你构建任何一种ItemList时
+
+0:21:44.400,0:21:47.000
+you can pass in a list of preprocesses,
+你可以植入一系列预处理设置
+
+0:21:47.000,0:21:49.540
+which you can create like this.
+你可以像这样来构建它们。
+
+0:21:49.600,0:21:52.640
+So this is saying OK I want to FillMissing
+这里的意思是说，我要做填补缺失处理
+
+0:21:52.640,0:21:53.460
+I want to Categorify,
+我要做类别化处理
+
+0:21:53.460,0:21:54.660
+I want to Normalize,
+我要做归一化处理
+
+0:21:54.660,0:21:56.160
+so for continuous variables
+对于连续变量，
+
+0:21:56.160,0:21:58.880
+it will subtract the mean and divide by the standard deviation
+也就是减去均值，再除去标准差
+
+0:21:58.880,0:22:00.260
+to help to train more easily,
+从而让训练更轻松
+
+0:22:00.260,0:22:02.280
+and so you just say those are my procs,
+所以，你只需将这些预处理放入一个序列中
+
+0:22:02.280,0:22:05.380
+and then you can just pass it in there and that's it.
+然后将这个序列送入这个函数中，就行了。
+
+0:22:05.380,0:22:08.100
+and later on you can go data.export,
+然后你可以执行data.export
+
+0:22:08.100,0:22:11.340
+and it will save all the metadata for that DataBunch,
+它会将所有元数据都存储在数据堆里，
+
+0:22:11.340,0:22:13.420
+so you can later on load it in,
+所以，稍后你可以加载这个数据堆
+
+0:22:13.420,0:22:15.540
+knowing exactly what your category codes are,
+（当然）你需要知道你的类别编码是什么，
+
+0:22:15.540,0:22:19.380
+exactly what median values used for replacing the missing values,
+用来填补缺失数据的中位数值是多少，
+
+0:22:19.380,0:22:23.120
+and exactly what means and standard deviations you normalize by.
+以及用于归一化的均值和标准差是多少。
+
+0:22:23.300,0:22:27.880
+Okay, the main thing you have to do,
+好的，你必须要做的是，
+
+0:22:27.880,0:22:30.520
+if you want to create a DataBunch of a tabular data,
+如果你要构建一个表格数据的数据堆
+
+0:22:30.520,0:22:32.560
+is to find out or tell it,
+（那么你需要）找出或分辨出
+
+0:22:32.560,0:22:34.360
+what are your categorical variables,
+哪些是你的类别变量，
+
+0:22:34.360,0:22:36.060
+and what are your continuous variables,
+哪些是你的连续变量，
+
+0:22:36.060,0:22:39.920
+as we discussed last week briefly,
+上周我们简要讨论过，
+
+0:22:39.920,0:22:44.580
+your categorical variables are not just strings and things,
+你的类别变量不仅仅是字符串之类，
+
+0:22:44.580,0:22:50.880
+but also I include things like day of week and month, and day of month,
+也包括星期几，月份，月内第几日，
+
+0:22:50.880,0:22:52.120
+even though they are numbers,
+尽管它们都是数字，
+
+0:22:52.120,0:22:53.980
+I make them categorical variables,
+我要用将它们转化成类别变量，
+
+0:22:53.980,0:22:56.140
+because for example, day of month,
+因为，例如，月内第几日，
+
+0:22:56.140,0:23:00.120
+I don't think (the distribution of day of month) it's going to have a nice smooth curve,
+我不认为（这个数据的分布）会很一条平滑曲线
+
+0:23:00.120,0:23:04.760
+I think the fifteenth of a month and the first of a month, and the thirtieth of a month
+我认为月内第15日，第一日，第30日，
+
+0:23:04.760,0:23:09.560
+are probability going to have different purchasing behavior to other days of a month.
+很可能会有与其他日子不一样的购物行为特征。
+
+0:23:09.560,0:23:12.440
+and so therefore, if I make it a categorical variable,
+所以，如果我将其转化为类别变量，
+
+0:23:12.440,0:23:15.380
+it is going to end up creating an embedding matrix,
+这将帮助生成一个嵌入矩阵，
+
+0:23:15.380,0:23:18.840
+and those different days of a month can get different behaviors.
+而那些不同的月内日期将有不一样的行为特征。
+
+0:23:18.840,0:23:21.120
+so you actually got to think carefully ,
+所以，你需要仔细考量
+
+0:23:21.200,0:23:23.820
+about which things should be categorical variables,
+到底哪些东西应该转化为类别变量，
+
+0:23:23.960,0:23:24.740
+and on the whole,
+整体来看 ，
+
+0:23:24.740,0:23:29.000
+if in doubt (whether to make it categorical or not) and there are not too many labels in your category,
+如果有疑虑(是否要转化成类别变量)，但（面对的这个数据的）类别种数不多，
+
+0:23:29.000,0:23:30.580
+that's called cardinality.
+也就是集合元素数量的意思
+
+0:23:30.580,0:23:32.560
+If your cardinality is not too high,
+如果你的集合元素数量不高，
+
+0:23:32.560,0:23:35.600
+I would put it as a categorical variable.
+我建议将这个数据转化为类别变量。
+
+0:23:35.600,0:23:37.460
+You can always try each and see which works the best
+你可以两个都试试，看哪个效果更好
+
+0:23:37.920,0:23:41.360
+So, our final dataframe that we are going to pass in,
+我们最后要输送给（模型）的dataframe
+
+0:23:41.360,0:23:43.180
+is going to be our training set,
+也就是我们的训练集
+
+0:23:43.180,0:23:45.660
+with the categorical variables and the continuous variables,
+（训练集）包含了类别变量，连续变量
+
+0:23:45.660,0:23:48.060
+and the dependent variable and the date,
+应变量和日期
+
+0:23:48.060,0:23:52.060
+and the date we are just going to use to create a validation set,
+我们要用日期数据来切分验证集
+
+0:23:52.060,0:23:54.700
+where we basically are going to say the validation set
+我们基本上是这样来设定验证集的
+
+0:23:54.700,0:23:57.880
+is going to be the (nearly) same number of records
+数量上与测试集（几乎）一样
+
+0:23:57.880,0:24:00.980
+at the end of the time period that the test set is for kaggle, (translator's note: I don't get the face value of these words. Based my understanding of notebook, it could mean something like "validation set ends where test set starts")
+（时间上是训练集的末尾时间段，刚好衔接上测试集时间）
+
+0:24:00.980,0:24:05.620
+so that way we should be able to validate our model nicely.
+这样一来，我们应该能很好的对模型做验证。
+
+0:24:05.860,0:24:09.500
+OK, so now we can create a TabularList,
+现在我们可以构建一个TabularList,
+
+0:24:09.500,0:24:11.500
+so this is our standard data_block api,
+这里是我们标准的data_block api,
+
+0:24:11.500,0:24:13.440
+that you have seen for a few times.
+大家已经看过多次了。
+
+0:24:13.540,0:24:15.540
+from_df passing all of that information,
+（使用from_df函数）吃进各种数据和信息，
+
+0:24:15.540,0:24:18.260
+(split_by_idx) split it into valid vs train,
+（使用split_by_idx）来分割出验证集与训练集，
+
+0:24:18.260,0:24:20.520
+(label_from_df) label it with a dependent variable.
+（使用label_from_df）结合应变量来给数据做标注
+
+0:24:21.840,0:24:26.500
+Here is something (label_cls=FloatList) I don't think you have seen before, label_cls.
+这里有一个你们没见过的东西，label_cls
+
+0:24:27.360,0:24:29.240
+This is our dependent variable,
+这就是我们的应变量，
+
+0:24:29.240,0:24:32.340
+as you can see, this is sales,
+如你所见，应变量也就是销售额，
+
+0:24:32.380,0:24:36.200
+it is not a float, it is int64,
+它不是浮点数，而是64位的整数，
+
+0:24:36.200,0:24:42.020
+if it was a float, then fastai would automatically know or guess that you want to do a regression,
+如果应变量是浮点数，那么fastai将自动猜测出你要做的是回归，
+
+0:24:42.020,0:24:45.360
+okay, but this is not a float, it's an int.
+但它不是浮点数，而是整数。
+
+0:24:45.360,0:24:48.440
+so fastai is going to assume you want to do a classification.
+所以，fastai将假设你要做的是分类。
+
+0:24:48.440,0:24:54.700
+So when we label it (with label_from_df), we have to tell that the class of the labels we want is a list of float,
+所以，当我们标注应变量时（使用label_from_df)， 我们必须明确告知标注的类别是一个浮点数的序列
+
+0:24:54.700,0:24:57.400
+not a list of categories,
+不是类别序列，
+
+0:24:57.400,0:24:58.920
+which (MultiCategoryList) would otherwise be the default.
+(fastai) 默认的是（多类别分类序列）。
+
+0:24:59.000,0:25:02.400
+So this is the thing that's going to automatically turn this into a regression problem for us.
+这个设置将自动把我们的问题变成回归问题。
+
+0:25:02.400,0:25:06.180
+and then we create a DataBunch
+这样我们就有了一个数据堆
+
+0:25:06.180,0:25:13.300
+so I want to remind you again, about doc,
+我想带大家回顾以下doc
+
+0:25:13.300,0:25:15.720
+which is how we find out more information about this stuff,
+它可以帮助我们了解FloatList更多详情
+
+0:25:15.720,0:25:19.600
+and in this case all of the labeling functions in the data block API,
+在这里所有的data block API 中的标注函数
+
+0:25:19.600,0:25:24.120
+will pass on any key words they don't recognise, to the label_cls.
+会将它们不认识的关键词，都给到label_cls
+
+0:25:24.120,0:25:26.880
+So, one of the things I have passed in here is log,
+其中一个输入的内容是log
+
+0:25:26.880,0:25:30.320
+and so that's actually going to end up in FloatList,
+（log）会进入到FloatList里
+
+0:25:30.320,0:25:33.680
+and if I go doc(FloatList), I can see a summary okay,
+如果执行doc(FloatList), 我可以看到这个函数的总结
+
+0:25:33.680,0:25:36.180
+I can even jump to the full documentation,
+我甚至可以进入到文档详情
+
+0:25:36.180,0:25:40.240
+and shows me here that log is something which if true
+（文档）显示如果log 是 True,
+
+0:25:40.240,0:25:43.860
+is going to take the logarithm of my dependent variable.
+那么就会对应变量做对数处理
+
+0:25:43.860,0:25:45.940
+why am I doing that,
+为什么我要这么做呢？
+
+0:25:45.940,0:25:49.920
+this is the thing that's actually going to automatically take the log of my y,
+这个设置能自动为我的y取对数
+
+0:25:49.920,0:25:52.100
+the reason I am doing that,
+我这么做的原因是
+
+0:25:52.100,0:25:54.640
+is because as I mentioned before
+因为如我之前所说的
+
+0:25:54.640,0:26:00.240
+the evaluation metric is Root Mean Squared Percentage Error,
+评估工具是均方根百分比误差
+
+0:26:00.240,0:26:05.980
+and either fastai or pytorch,
+不论是fastai还是pytorch
+
+0:26:05.980,0:26:10.440
+has a root mean squared percentage error loss function built in,
+都有自带的均方根百分比误差的损失函数
+
+0:26:10.440,0:26:13.300
+I don't even know if such a loss function would work super well,
+我不知道这样的损失函数是否好用
+
+0:26:13.300,0:26:16.420
+but if you want to spend time thinking about it,
+如果你要深究的话，
+
+0:26:16.420,0:26:19.260
+you will notice that this ratio
+你会发现这个比值
+
+0:26:19.260,0:26:21.920
+if you first take the log of Y and Y_hat
+如果你先对y和y_hat取对数
+
+0:26:21.920,0:26:25.100
+then it becomes a difference rather than a ratio,
+那么，（结果）将变成差值而非比值
+
+0:26:25.100,0:26:27.080
+so in other words if you take the log of y,
+换言之，如果你对y取对数
+
+0:26:27.080,0:26:30.840
+then this becomes root mean squared error,
+那么，结果将变成均方根误差
+
+0:26:30.840,0:26:32.720
+so that is what we are going to do,
+这就是我们要做的计算
+
+0:26:32.720,0:26:34.720
+we are going to take the log of y,
+我要先对y取对数
+
+0:26:34.720,0:26:37.900
+and then we are just going to use root mean squared error,
+然后，我们就就是均方根误差即可
+
+0:26:37.900,0:26:40.020
+which is the default for a regression problem,
+这也是回归模型的中的默认设置
+
+0:26:40.020,0:26:41.120
+we won't even have to mention it.
+我们甚至不必提及
+
+0:26:41.120,0:26:44.260
+The reason that we have this here
+我们之所以在这里对它做讲解
+
+0:26:44.260,0:26:46.600
+is because it is so common , right,
+是因为它太常见了
+
+0:26:46.600,0:26:49.500
+basically anytime you are trying to predict something
+基本上只要你要做预测
+
+0:26:49.500,0:26:54.620
+that's like a population or a dollar amounts of sales,
+例如，（预测）人口，或销售额金额
+
+0:26:54.620,0:26:58.580
+these kind of things tend to have long tail distributions
+这类的数据通常会有长尾分布
+
+0:26:58.580,0:27:03.260
+where you care more about percentage differences than exact differences you know, absolute difference,
+（因为这类情况下）你会更在意比值差异而非精确数值或绝对值差异
+
+0:27:03.260,0:27:08.620
+so you are very likely to want to do things with log equals true,
+所以，你很可能会想要用log=True的设置
+
+0:27:08.620,0:27:11.380
+and to measure root mean squared percent error.
+来配合计算均方根百分比误差
+
+0:27:11.860,0:27:16.840
+We have learnt about the y range before,
+我们之前有了解过y_range（也就是y的区间设定）
+
+0:27:16.860,0:27:19.680
+which is going to use that sigmoid to help us get the right range,
+并借助S函数来获取合适的区间
+
+0:27:19.680,0:27:25.620
+because this time the y values, are going to be taken the log of it first,
+因为这次所以y值，都会先被取对数
+
+0:27:25.620,0:27:28.900
+we need to make sure the y range we want, is also the log,
+我们需要确认y_range也是对数处理过的
+
+0:27:28.900,0:27:32.300
+so I am going to take the maximum of the sales column,
+所以，我们这里去销售额的最大值
+
+0:27:32.300,0:27:34.820
+I am going to multiply it by a little bit,
+然后乘上一个数对它做一点放大
+
+0:27:34.820,0:27:39.900
+so that's because remember how we said it's nice if your range is a bit wider than the range of the data,
+还记得我们说过这个区间大一点会更好
+
+0:27:39.900,0:27:42.080
+and then we are going to take the log,
+然后我们对它（销售额最大值）取对数
+
+0:27:42.080,0:27:43.900
+and that's going to be our maximum,
+这就是我们区间的最大值
+
+0:27:43.900,0:27:50.420
+so then our y range will be from 0 to a bit more than the maximum.
+这样一来我们的y区间就在0和比最大值稍大一点的值的范围内
+
+0:27:50.420,0:27:53.420
+so now we have got our DataBunch,
+现在我们有了我们的数据堆
+
+0:27:53.420,0:27:55.980
+we can create a tabular learner from it,
+我们可以以此构造表格学习器
+
+0:27:55.980,0:27:58.480
+and then we have to pass in our architecture,
+然后向它(学习器)输送模型结构
+
+0:27:58.480,0:28:03.400
+and as we briefly discussed, for a tabular model,
+让我们简要讨论过的，对于表格模型而言
+
+0:28:03.400,0:28:09.620
+our architecture is literally the most basic fully connected network,
+我们的模型结构就是最简单的全联接神经网络
+
+0:28:09.620,0:28:12.080
+just like what we showed in this picture.
+如图所示
+
+0:28:12.080,0:28:16.440
+It's an input, (it's) matrix multiply, (it's) nonlinearity,
+这里是输入值，矩阵乘法，非线性激活值
+
+0:28:16.440,0:28:21.660
+(it's) matrix multiply,  (it's) nonlinearity, (it's) matrix multiply,  (it's) nonlinearity, done.
+，矩阵乘法，非线性激活值，矩阵乘法，非线性激活值，完成！
+
+0:28:21.660,0:28:26.780
+Ok, one of the interesting things about this is that this competition is three years old,
+有趣的是，这个竞赛依旧有三年历史了
+
+0:28:26.780,0:28:31.720
+but I am not aware of any significant advances,
+但我还没见过任何实质上的突破
+
+0:28:31.720,0:28:35.400
+in terms of architecture to cause me to choose something different,
+至少模型结构设计上没有我想用的新东西
+
+0:28:35.400,0:28:39.480
+to what the third place folks did three years ago,
+对比三年前的第三名选手所用的模型设计
+
+0:28:39.480,0:28:45.360
+we still basically use simple fully connected models, for this problem,
+我们依旧使用最简单的全联接模型来应对这个问题
+
+0:28:45.460,0:28:53.160
+Now, the intermediate weight matrix
+中间的参数矩阵
+
+0:28:53.160,0:28:56.720
+is going to have to go from a 1000 activation input,
+需要从1000个输入激活值，
+
+0:28:56.720,0:28:59.540
+to a 500 activation input,
+计算转化成500 激活输入值
+
+0:28:59.540,0:29:04.660
+which means it is going to have be 500, 000 elements in that weight matrix,
+这意味中间的参数矩阵将含有50万个参数
+
+0:29:04.660,0:29:09.220
+that's an awful lot for a dataset with only a few hundred thousand rows,
+这么多对于只有数十万个样本的数据集而言，实在太大了
+
+0:29:09.220,0:29:13.380
+so this is going to overfit, and we need to make sure it doesn't,
+这会导致过拟合，而我们需要避免过拟合的发生
+
+0:29:13.380,0:29:18.820
+the way to make sure it doesn't is to use regularization,
+确保不发生的方法就是使用正则化
+
+0:29:18.820,0:29:22.680
+not to reduce the number of parameters, to use regularization,
+不是减少参数数量，而是采用正则化
+
+0:29:22.680,0:29:26.140
+so one way to do that will be to use weight decay,
+那一种具体正则化方法是权值衰减
+
+0:29:26.140,0:29:29.140
+which fastai will use automatically,
+这是fastai的默认操作
+
+0:29:29.140,0:29:32.480
+and you can vary it to something other than the default if you wish,
+你有可以对默认值稍作调整
+
+0:29:32.480,0:29:34.380
+it turns out in this case,
+在这个案例中
+
+0:29:34.380,0:29:36.460
+we are going to want more regularization,
+我们需要使用更多的正则化
+
+0:29:36.460,0:29:39.700
+and so we are going to pass in something called ps.
+所以，我们要用一个参数设置，叫ps
+
+0:29:39.700,0:29:42.180
+This is going to provide dropout,
+它将为我们提供随机失活/丢弃法
+
+0:29:42.180,0:29:46.880
+and also this one over here, emb_drop, this is going to provide embedding dropout.
+还会使用另一个参数设置， emb_drop，它将为我们提供嵌入矩阵的随机失活
+
+0:29:46.880,0:29:50.860
+So let's learn about what is dropout,
+所以，让我们学习一下什么是随机失活
+
+0:29:50.860,0:29:53.760
+but the short version is, dropout is a kind of regularization.
+简单的说，随机失活也是一种正则化
+
+0:29:53.820,0:30:04.020
+this is the dropout paper, Nitish Srivastava,
+这就是随机失活的论文， Nitish Srivastava,
+
+0:30:04.020,0:30:09.000
+it was Srivastava's master's thesis, under Geoffrey Hinton.
+这是Nitish Srivastava的硕士论文，导师是Geoffrey Hinton
+
+0:30:09.000,0:30:14.920
+This picture from the original paper is a really good picture of what's going on.
+这张来自论文的图片很好的解释随机失活的工作原理
+
+0:30:14.920,0:30:19.660
+This first picture is a picture of a standard fully connected network,
+第一张图展示的是一个标准的全联接模型
+
+0:30:19.660,0:30:21.820
+is a picture of this,
+这样的模型长得这个样子
+
+0:30:21.820,0:30:23.960
+and what each line shows,
+这里的每一条线代表的是
+
+0:30:23.960,0:30:28.180
+is a multiplication of an activation times weights,
+激活值与权重/参数的乘积
+
+0:30:28.180,0:30:32.280
+and when you get multiple arrows coming in that represent a sum,
+这些线向一点汇聚代表相加求和
+
+0:30:32.280,0:30:34.940
+so this activation here,
+结果就是这里的激活值
+
+0:30:34.940,0:30:40.020
+is the sum of all of these inputs times all of these activations,
+所以这个激活值，就是所有这些输入值与所有参数的乘积，再求和
+
+0:30:40.020,0:30:44.000
+so that is what a normal fully connected neural net looks like,
+这就是一个常规的全联接神经网络的样子
+
+0:30:44.000,0:30:49.520
+for dropout, we throw that away,
+对于随机失活而言，我们需要将它们丢弃掉
+
+0:30:49.520,0:30:56.040
+we are at random, we throw away some percentage of the activations,
+我们随机扔掉一定比例的激活值
+
+0:30:56.040,0:30:58.800
+not the weights, not the parameters,
+不是权重，不是参数，
+
+0:30:58.800,0:31:01.800
+remember there are only two types of number in a neural net,
+记住只有两种数值存在于神经网络中
+
+0:31:01.800,0:31:06.500
+parameters also called weights, kind of, and activations,
+参数，也可以叫权重，还有就是激活值
+
+0:31:06.500,0:31:09.800
+so we are going to throw away some activations, so you can see,
+我们要丢掉一些激活值，你会看到
+
+0:31:09.800,0:31:11.800
+when we throw away this activation,
+当我们扔掉这个激活值时
+
+0:31:11.800,0:31:16.540
+all of the things that were connected to it are gone too.
+与它链接的值（所有用来求和的值）也都不见了
+
+0:31:16.540,0:31:20.560
+okay, for each min-batch,
+每一个小批量
+
+0:31:20.560,0:31:24.460
+we throw away a different subset of activations,
+我们丢掉一组不一样的激活值
+
+0:31:24.460,0:31:26.180
+how many do we throw away?
+那么我们都掉多少激活值呢？
+
+0:31:26.180,0:31:30.360
+we throw each one of them away with a probability P,
+我们基于概率值P来决定是否丢弃激活值
+
+0:31:30.360,0:31:34.940
+a common value of P is 0.5,
+一个常见的P值是0.5
+
+0:31:34.940,0:31:37.660
+so what does that mean?
+那么这意味着什么呢？
+
+0:31:37.660,0:31:39.600
+and you will see in this case,
+在这里你将看到
+
+0:31:39.600,0:31:45.640
+not only have they deleted at random some of these in hidden layers,
+不仅仅隐藏层里的激活值被随机丢弃了
+
+0:31:45.640,0:31:48.180
+but they actually have deleted some of the input as well,
+甚至输入值也被随机丢弃了
+
+0:31:48.180,0:31:51.440
+deleting the input is pretty unusual,
+丢弃输入值是很少见的
+
+0:31:51.440,0:31:56.200
+normally we only delete activations, in the hidden layers,
+通常我们只是删除隐藏层中的激活值，
+
+0:31:56.200,0:31:58.880
+so what does this do?
+那这有什么作用呢？
+
+0:31:59.080,0:32:00.860
+so every time I have a mini-batch going through,
+每一次当一个小批量通过模型时
+
+0:32:00.860,0:32:04.400
+I at random throw away some of the activations,
+我随机丢掉一些激活值
+
+0:32:04.400,0:32:07.920
+and then the next mini-batch I put them back and throw away some different ones,
+下一个小批量（进入模型）时，我将丢掉的归位，再丢弃一些不同（其实还是随机选择）的激活值
+
+0:32:07.920,0:32:17.860
+okay, so it means that no one activation can kind of memorize  some part of the input,
+这就意味着没有任何一个激活值能记住某些输入值
+
+0:32:17.860,0:32:20.040
+because that's what happens if we overfit,
+而这种情况（记住输入值）恰恰是过拟合的体现
+
+0:32:20.040,0:32:25.600
+if we overfit, some part of the model is basically learning to recognize a particular image
+过拟合时，也就是模型的某个部分学习识别了某张图片
+
+0:32:25.600,0:32:29.700
+rather than a feature in general, or particular item.
+而不是学会识别某个泛化的特征或物体
+
+0:32:29.700,0:32:36.180
+with dropout, it's going to be very hard for it to do that,
+没有随机失活，要做到它（后者），很困难
+
+0:32:36.180,0:32:46.180
+in fact Geoffrey Hinton described part of the thinking behind this as follows,
+Geoffrey Hinton 是这么解释随机失活的灵感由来的，
+
+0:32:46.180,0:32:48.840
+he said he noticed every time he went to his bank,
+他发现每次他去银行
+
+0:32:48.840,0:32:51.820
+that all the tellers and staff moved around
+所有的收银员和员工都在与之前不一样的岗位上
+
+0:32:51.820,0:32:55.380
+and he realized the reason for this must be that they are trying to avoid fraud,
+他意识到背后的理由是规避欺诈
+
+0:32:55.380,0:32:57.300
+if they keep moving them around,
+如果他们持续换岗
+
+0:32:57.300,0:33:00.440
+nobody can specialize so much in that one thing that they are doing
+那么就无人能如此精通某项工作，以至于
+
+0:33:00.440,0:33:04.360
+that they can figure out kind of conspiracy to defraud the bank.
+能够达到欺诈银行的地步
+
+0:33:04.360,0:33:07.480
+Now of course, depends when you ask Hinton,
+当然，这取决于你向Hinton提问的时机
+
+0:33:07.480,0:33:12.700
+at other times he says that the reason for this was because he thought about how spiking neurons work
+其他时候，他会说背后的理由是脉冲神经元的工作远离
+
+0:33:12.700,0:33:15.640
+and there is a view that he is a neural scientist by training,
+一种理解是这种解释源于他的脑神经学家的背景
+
+0:33:15.640,0:33:19.200
+there is a view that spiking neurons might help regularization
+（脑神经学的）一个理论是脉冲神经元能帮助正则化
+
+0:33:19.200,0:33:24.140
+and dropout is kind of a way of matching this idea of spiking neurons.
+而随机失活，是一种尝试脉冲神经元的原理
+
+0:33:24.140,0:33:28.580
+I mean it is interesting when you actually ask people
+我想说的是，当你实际询问
+
+0:33:28.580,0:33:33.560
+where did your idea for some algorithm come from,
+你的算法是怎么来的时
+
+0:33:33.560,0:33:36.060
+it basically never come from math,
+答案是从来就不是源于数学
+
+0:33:36.060,0:33:41.840
+it is always come from intuition and kind of thinking about physical analogies and stuff like that,
+灵感总是源于直觉，以及现实中的真实事物类比，等等
+
+0:33:41.840,0:33:46.280
+so anyway the truth is a bunch of ideas all flowing around
+所以，真相是当时一系列的活跃想法交织在一起
+
+0:33:46.280,0:33:48.400
+and and they came up with this idea of dropout,
+最终汇集作用形成了随机失活的原型
+
+0:33:48.400,0:33:51.840
+but the important thing to know is it works really really well,
+但重要的是，随机失活非常好用
+
+0:33:51.840,0:33:57.820
+right and so we can use it in our models,
+所以，我们也能在模型中使用随机失活，
+
+0:33:57.820,0:34:01.140
+to get generalization for free,
+来轻松实现泛化，
+
+0:34:01.140,0:34:04.560
+now too much dropout of course is reducing the capacity of our model,
+当然过多的随机失活会降低模型的学习能力
+
+0:34:04.560,0:34:05.920
+so it is going to underfit.
+这会导致欠拟合
+
+0:34:05.920,0:34:10.540
+so you've got to play around with different dropout values for each of your layers to decide,
+所以，你需要为不同的层来适配合适P值/丢弃比例
+
+0:34:10.540,0:34:15.460
+so in pretty much every fastai learner,
+几乎所有的fastai学习器
+
+0:34:15.460,0:34:18.580
+there is a parameter called ps,
+都含有一个ps的函数参数
+
+0:34:18.580,0:34:22.260
+which would be the p value for the dropout for each layer,
+这个P值代表每一层的丢弃比例
+
+0:34:22.260,0:34:23.420
+so you can just pass in a list,
+所以，你可以给函数一个序列（一层一个P值）
+
+0:34:23.420,0:34:25.840
+or you can pass in an int,
+或者你可以给函数一个整数
+
+0:34:25.840,0:34:29.560
+and it will create a list with that value everywhere,
+函数会自动将这个整数应用到每一层的P值上
+
+0:34:29.560,0:34:33.540
+sometimes it's a little different for CNN for example,
+有时，对于CNN有所不同，例如
+
+0:34:33.540,0:34:39.320
+actually if you pass in an int it will use that for the last layer and half of that value for the earlier layers,
+如果你给到函数的是一个整数，那么这个整数值会被给到最后一层，而其他层得到的值是整数的一半
+
+0:34:39.320,0:34:42.600
+we basically try to do things , kind of represent best practices.
+我们做各种尝试，来提供做好的实操参数设置
+
+0:34:42.600,0:34:47.140
+But you can always pass in your own list to get the exactly the dropout that you want,
+但你可以提供自己的序列来定制你的随机失活
+
+0:34:47.140,0:34:51.360
+there is an interesting feature of dropout,
+随机失活有一个有趣的特征
+
+0:34:51.360,0:34:55.640
+which is that we talk about training time and test time,
+我们有区分训练期和测试期
+
+0:34:55.640,0:34:57.460
+test time we also call inference time,
+测试期也被称为预测期
+
+0:34:57.460,0:35:01.980
+training time is when we are actually doing that， those weight updates， the backpropagation,
+所谓训练期，就是我们在做参数更新，也就是反向传递的期间
+
+0:35:01.980,0:35:05.520
+and the training time dropout works the way we just saw.
+训练期，随机失活按照我们刚才的描述工作
+
+0:35:05.520,0:35:09.980
+at test time, we turn off dropout,
+测试期，我们要关闭随机失活
+
+0:35:09.980,0:35:11.580
+we are not going to do dropout anymore,
+我们不再做随机失活
+
+0:35:11.580,0:35:13.120
+because we want to be as accurate as possible,
+因为我们需要模型尽可能精确
+
+0:35:13.120,0:35:17.100
+we aren't training so we can't cause it to overfit, when we are doing inference.
+我们没有训练，所以不会导致过拟合，当我们在做预测时。
+
+0:35:17.100,0:35:19.940
+so we remove dropout
+所以，我们此时不做随机失活。
+
+0:35:19.940,0:35:24.000
+but what that means is previously P was 0.5
+这意味什么呢？之前的P是0.5
+
+0:35:24.000,0:35:26.280
+then half of the activations were being removed,
+也就是一半的激活值将被丢弃
+
+0:35:26.280,0:35:28.420
+which means when they are all there,
+也就是说当它们全部保留时，
+
+0:35:28.420,0:35:31.480
+now our overall activation level is twice what it used to be,
+激活值的量将是训练时的2倍，
+
+0:35:31.480,0:35:38.520
+and therefore in the paper they suggest multiplying all of your weights at test time by p,
+所以，论文建议对所有的参数乘上P
+
+0:35:38.520,0:35:43.720
+interestingly, you can dig into the pytorch source code,
+有趣的是，你可以查看pytorch源代码
+
+0:35:43.720,0:35:46.180
+and you can find the actual C code,
+你可以看到对应的C语言的代码
+
+0:35:46.180,0:35:48.240
+where dropout is implemented,
+来实际计算随机失活
+
+0:35:48.240,0:35:52.640
+and here it is, and you can see what they are doing is quite interesting,
+看这里，这些代码很有意思
+
+0:35:52.640,0:35:55.500
+they first do a Bernoulli trial
+首先是做一个伯努利实验
+
+0:35:55.500,0:35:59.500
+a bernoulli trial is with probability equals 1-p,
+输入给伯努利函数的是1-p
+
+0:35:59.500,0:36:02.520
+return the value 1, otherwise return the value 0
+返回值要么是1， 要么是0
+
+0:36:02.620,0:36:04.580
+that's all it means
+就这么简单
+
+0:36:04.580,0:36:08.380
+so, in this case p is the probability of dropout,
+这里的P就是随机失活的P值
+
+0:36:08.380,0:36:12.580
+so 1-p is the probability that we keep the activation,
+而1-p则是我们要保留的激活值的比例
+
+0:36:12.580,0:36:15.300
+so we end up here with either 1 or 0,
+所以，我们得到的返回值是要么1要么0
+
+0:36:15.300,0:36:19.360
+and then this is interesting,
+然后，下面这一行代码很有意思
+
+0:36:19.360,0:36:23.460
+we divide inplace, remember underscore means inplace in pytorch,
+我们用div_， 还记得pytorch里div_就是整除再赋值一步完成的意思
+
+0:36:23.460,0:36:26.860
+we divide inplace that 1 or 0  by 1-p,
+整除的对象是1-p
+
+0:36:26.860,0:36:30.120
+if it is a 0, nothing happens, it's still 0;
+如果输入的noise是0，除去什么都还是0
+
+0:36:30.120,0:36:35.540
+it is a 1, and p is 0.5, that 1 now becomes 2,
+如果noise是1，而p=0.5, 那么noise就从1变成了2
+
+0:36:35.540,0:36:43.140
+and finally we multiply inplace our input by this noise,
+最后再用multiply<inplace>做input 与 noise的乘法与赋值的计算
+
+0:36:43.240,0:36:44.740
+，（noise is ) this dropout mask.
+这个noise, 也就是随机失活的掩码。
+
+0:36:44.740,0:36:50.060
+so in other words, we actually don't do, in pytorch we don't do the change at test time,
+换言之，预测时我们不做随机失活处理
+
+0:36:50.060,0:36:53.340
+we actually do the change at training time,
+我们只在训练时，做这些代码的计算
+
+0:36:53.340,0:36:57.600
+which means that you don't have to do anything special at inference time with pytorch,
+所以，预测时pytorch并没有做任何操作
+
+0:36:57.600,0:37:00.540
+it's not just pytorch, it's quite common pattern,
+不仅仅是pytorch, 这个设置很常见
+
+0:37:00.540,0:37:03.780
+but it's kind of nice to look inside the pytorch source code and see,
+但能这样直接看pytorch源码感觉很好
+
+0:37:03.780,0:37:12.440
+you know, dropout, this incredibly cool, incredibly valuable thing, is really just these three lines of code which they do in C
+因为我们能看到如此酷的随机失活只需要3行C代码
+
+0:37:12.440,0:37:15.160
+because I guess it ends up a bit faster when it's all fused together,
+用C的原因我猜是因为更快
+
+0:37:15.160,0:37:18.720
+but lots of libraries do it in python and that works well as well,
+但很多库都用python，也都很好用
+
+0:37:18.720,0:37:21.140
+you can even write your own dropout layer
+你也可以尝试自己写随机失活层的代码
+
+0:37:21.140,0:37:25.420
+and it should give exactly the same result as this,
+应该也会得到和它一摸一样的结果
+
+0:37:25.420,0:37:32.060
+so that would be a good exercise to try and see if you can create your own dropout layer in python.
+这是一个很好的练习，看看你是否能用python写出随机失活
+
+0:37:32.060,0:37:35.320
+and see if you can replicate the results that we get with this dropout layer.
+也看看你的结果和我们用这些C代码得到的是否相同
+
+0:37:35.320,0:37:41.440
+so, that's dropout.
+这就是随机失活。
+
+0:37:41.440,0:37:46.100
+and so in this case we are going to use a tiny bit of dropout on the first layer,
+这里我会用到非常少随机失活，给到第一层
+
+0:37:46.100,0:37:49.140
+and little bit of dropout on the next layer,
+一点点随机失活给下一层
+
+0:37:49.140,0:37:52.900
+and then we are going to use special dropout on the embedding layer,
+然后，对嵌入层做特殊随机失活
+
+0:37:52.900,0:37:56.280
+now why do we use special embedding dropout on the embedding layer?
+为什么要对嵌入层做特殊随机失活？
+
+0:37:56.280,0:38:03.500
+so if you look inside the  fastai source code,
+如果你查看fastai源码
+
+0:38:03.500,0:38:06.200
+it is our tabular model,
+这是我们的表格模型
+
+0:38:06.200,0:38:13.140
+you will see in the section that checks that there is some embeddings,
+你可以看到这个用到了嵌入层
+
+0:38:13.140,0:38:17.880
+then we call each embedding and we concatenate the embeddings into a single matrix
+这里调用了每一个嵌入，然后将他们合并在一个矩阵中
+
+0:38:17.880,0:38:19.900
+and then we call embedding dropout.
+然后我们执行emb_drop(x)这个函数
+
+0:38:19.900,0:38:25.820
+And embedding dropout is simply just a dropout,
+嵌入随机失活，也就是随机失活
+
+0:38:25.820,0:38:29.200
+so it's just an instance of a dropout module.
+也就是一个随机失活模块的实例化
+
+0:38:29.200,0:38:32.300
+this is kind of make sense right?
+这里比较好理解，对吧
+
+0:38:32.300,0:38:34.260
+for continuous variables,
+对于连续变量
+
+0:38:34.260,0:38:36.860
+that continuous variables is just in one column,
+这个连续变量只是一个数据列
+
+0:38:36.860,0:38:39.420
+you wouldn't want to do dropout on that,
+你不应该对它做随机失活
+
+0:38:39.420,0:38:42.180
+because you are literally deleting the existence of that whole input,
+否则，你会删除所有的输入值
+
+0:38:42.180,0:38:44.100
+which is almost certainly not what you want,
+这几乎肯定不是你想看到的
+
+0:38:44.100,0:38:46.880
+but for embedding,
+但对于嵌入层
+
+0:38:46.880,0:38:53.000
+embedding is just effectively a matrix multiplied by a one-hot encoded matrix,
+嵌入值是一个矩阵与另一个one-hot编码矩阵乘积的结果
+
+0:38:53.000,0:38:54.360
+so it's just another layer,
+所以，它其实就是一个层
+
+0:38:54.360,0:38:58.920
+so it makes perfect sense to have dropout on the output embedding,
+因此，对嵌入层做随机失活是很自然的事
+
+0:38:58.920,0:39:02.200
+because you are putting dropout on those activations of that layer
+你就是在对这个层的激活值做随机失活
+
+0:39:02.200,0:39:06.120
+and so you are basically saying let's delete at random
+也就是对这个层里的激活值做随机丢弃
+
+0:39:06.120,0:39:11.680
+some of the results of that embeddings, some of those activations
+（丢弃的）就是嵌入层的激活值
+
+0:39:11.680,0:39:13.620
+so that makes sense,
+所以，听起来是合理的
+
+0:39:13.620,0:39:16.260
+the other reason we do it that way,
+另一个原因（做嵌入层随机失活）
+
+0:39:16.260,0:39:19.920
+is because I did very extensive experiments about a year ago,
+是一年前我做了大量深入的实验
+
+0:39:19.920,0:39:26.220
+where on this dataset I tried lots of different ways of doing kind of everything,
+针对这个数据集我做了各种尝试
+
+0:39:26.220,0:39:29.640
+and you can actually see it,
+你可以看到
+
+0:39:29.640,0:39:33.440
+here I put it all in a spreadsheet of course Microsoft Excel,
+我将它们都放入到了这个Excel表格里
+
+0:39:33.440,0:39:36.120
+put them into a pivot table to summarize them altogether
+通过数据透视表来对它们做总结
+
+0:39:36.120,0:39:41.380
+to find out kind of which different choices and hyperparameters and architectures worked well and worked less well,
+来比较发现哪些超参数和模型结构好用或不好用
+
+0:39:41.380,0:39:44.680
+and then I created all these little graphs
+然后我把它们化成这样的小图
+
+0:39:44.680,0:39:49.500
+and these are like little summary training graphs for different combinations of high parameters and architectures,
+它们就像是这些超参数和模型设计组合的训练表现总结
+
+0:39:49.500,0:39:56.380
+and I found that there is one of them which ended up consistently getting a good predictive accuracy,
+我发现其中有一个组合有持续较好的表现
+
+0:39:56.380,0:40:01.040
+the kind of bumpiness of the training was pretty low
+它的训练表现的颠簸度非常低
+
+0:40:01.040,0:40:05.360
+and you can see on it was just a nice smooth curve,
+你可以看出这是一个相当平滑的曲线
+
+0:40:05.360,0:40:11.400
+and so like this is an example of the kind of experiments that I do that end up in the fastai library,
+这是我所做的一个实验，且被纳入fastai的例子
+
+0:40:11.400,0:40:16.080
+right, so embedding dropout was one of those things that I just found work really well
+嵌入随机失活，就是我通过实验找到的一个好用的设置
+
+0:40:16.080,0:40:24.240
+and basically the results of these experiments is why it looks like this rather than something else,
+这是实验的结果就是这些源代码长得这个样子而非其他样子的原因
+
+0:40:24.240,0:40:28.800
+well its' a combination of these experiments but then why did I do these particular experiments,
+那么我为什么会选择做这样的一些实验呢？（而不是其他实验？）
+
+0:40:28.800,0:40:36.840
+well because it was very influenced by what worked well in that kaggle prize winner's paper,
+是因为受到了那篇kaggle竞赛论文的影响
+
+0:40:36.840,0:40:40.180
+but there are quite a ew parts of that paper I thought
+那篇论文里有相当一部分内容，
+
+0:40:40.180,0:40:43.320
+there were some other choices they could have made I wonder why they didn't
+我认为他们可以做其他选择，我在想他们为什么没有选
+
+0:40:43.320,0:40:47.580
+and I tried them out and found out what actually works and what doesn't work as well
+于是我做了实验，发现哪些好用，哪些不好用
+
+0:40:47.580,0:40:50.820
+and found a few little improvements,
+并找到了一些改进之处
+
+0:40:50.820,0:40:53.820
+so that's the kind of experiments that you can play around with as well,
+这些实验你们也能尝试实验一下
+
+0:40:53.820,0:41:01.940
+when you try different models and architectures, different dropouts layers numbers, number of activations and so forth.
+你可以试试不同模型结构，不同的丢弃比例，不同数量的激活值，等等
+
+0:41:02.900,0:41:07.180
+so, having created our learner, we can type learner.model to take a look at it,
+构造好了学习器，我们可以执行learner.model查看模型内部构造
+
+0:41:07.180,0:41:11.240
+and as you would expect in that, there is a whole bunch of embeddings,
+不出所料，你会看到一堆嵌入矩阵
+
+0:41:11.240,0:41:17.820
+each of those embedding matrices, tells you well this is the number of levels of the input,
+每一个嵌入矩阵，会告诉你，这是输入值的数量
+
+0:41:17.820,0:41:24.880
+for each input right and you can match these with your list (of) cat_vars. right,
+你可以将输入值的数量与类别变量序列的每一个变量，做对应
+
+0:41:24.880,0:41:29.340
+so the first one will be store, so that's not surprising there are 1116 stores,
+第一个类别变量是店面，不出所料的是，1116对应的是1116个店面
+
+0:41:29.340,0:41:33.760
+and the second number of course is the size of the embedding,
+第二个值，代表的是嵌入矩阵的大小
+
+0:41:33.760,0:41:35.700
+and that's a number that you get to choose,
+这是一个你可以选择的数值
+
+0:41:35.700,0:41:39.680
+and so fastai has some default,
+fastai对这些选择做了默认设置
+
+0:41:39.680,0:41:44.060
+which actually work really really well nearly all the time,
+（这些默认设置）几乎总是很好用
+
+0:41:44.060,0:41:47.660
+so I almost never changed them, but when you create your tabular learner,
+所以，我几乎从不改动它们，但当你构造自己的表格学习器时，
+
+0:41:47.660,0:41:52.320
+you can absolutely pass in an embedding size dictionary,
+你完全可以输入一个包含嵌入矩阵大小的字典
+
+0:41:52.320,0:41:56.600
+which maps variable names to embedding sizes
+（用字典）来对变量名和嵌入矩阵大小值做配对
+
+0:41:56.600,0:42:00.060
+for anything where you want to override the defaults.
+从而实现你想要的自定要嵌入矩阵大小的设定
+
+0:42:02.140,0:42:04.780
+and then we got our embedding dropout layer,
+然后就是对嵌入层做随机失活处理
+
+0:42:04.780,0:42:09.420
+and then we got a batch norm layer with 16 inputs,
+然后就是一个批量归一化层，它的输入值数量是16
+
+0:42:09.420,0:42:16.600
+the 16 inputs make sense because we have 16 continuous variables,
+16个输入值很合理，因为我们有16个连续变量
+
+0:42:16.600,0:42:20.860
+the length of cont_names is 16,
+所以cont_names序列的长度就是16
+
+0:42:20.860,0:42:23.840
+so this is something for our continuous variables,
+所以，这是针对我们连续变量的层结构
+
+0:42:23.840,0:42:31.480
+and specifically it is over here bn_cont on our continuous variables x_cont,
+具体的要看这里，.bn_cont(x_cont),  x_cont是我们的连续变量
+
+0:42:31.480,0:42:35.920
+and bn_cont is a BatchNorm1d, what's that?
+而bn_cont就是BatchNorm1d， 那什么是BatchNorm1d?
+
+0:42:35.920,0:42:41.360
+well the first short answer is, it is one of the things I experimented with,
+第一个简短回答是，这是我做的一个实验
+
+0:42:41.360,0:42:47.120
+as to having BatchNorm or not in this and I found it really worked well,
+对比添加或不添加批量归一化，我发现添加的效果很好
+
+0:42:47.120,0:42:53.020
+and then specifically what it is, is extremely unclear,
+但具体批量归一是什么，极其不确定
+
+0:42:53.020,0:42:57.380
+let me describe it to you, it is kind of a bit of regularization,
+让我尝试描述一下，它是一种正则化
+
+0:42:57.380,0:42:59.520
+it's kind of a bit of training helper,
+它算是一个训练助手
+
+0:42:59.520,0:43:04.360
+it's called batch normalization,
+被叫做批量 正则化处理
+
+0:43:04.360,0:43:06.880
+and it comes from this paper,
+它来自这篇论文
+
+0:43:06.880,0:43:10.960
+actually before I do this I want to mention one other really funny thing,
+在我继续之前，先说件有趣的事
+
+0:43:10.960,0:43:17.720
+dropout I mentioned it was a master's thesis, not only it was a master's thesis,
+随机失活这篇论文，我讲过是硕士毕业论文，不仅如此
+
+0:43:17.720,0:43:20.640
+(but also) one of the most influential papers of the last ten years,
+还是过去10年的最有影响力的论文
+
+0:43:20.640,0:43:25.160
+it was rejected from the main neural net conference,
+但论文却被主流神经网络大会拒收
+
+0:43:25.160,0:43:27.920
+it was then called NIPS, now called neurIPS.
+这个大会之前叫NIPS，现在更名为neurIPS
+
+0:43:27.920,0:43:34.340
+I think it's very interesting because it is just a reminder that you know,
+我认为这个很有趣，因为它对我们是个提醒
+
+0:43:34.340,0:43:40.800
+a) our academic community is generally extremely poor
+a) 我们的学术圈通常严重缺乏
+
+0:43:40.800,0:43:43.660
+at recognizing which things are going to turn out to be very important,
+识别潜在影响力巨大的新事物的能力
+
+0:43:43.660,0:43:50.900
+generally people are looking for stuff that are in the field that they are working on and understand,
+通常人们只关注那些他们从事的或理解的事物
+
+0:43:50.900,0:43:53.460
+dropout kind of came out of left field,
+随机失活，属于稀有的研究事物
+
+0:43:53.460,0:43:55.560
+it's kind of hard to understand what's going on,
+很少人理解背后的原理
+
+0:43:55.560,0:43:57.560
+and so that's kind of interesting,
+这就有趣了
+
+0:43:57.560,0:44:03.720
+and so you know it's a reminder that if you just follow, you know ,
+作为提醒，如果你希望一路
+
+0:44:03.720,0:44:08.900
+as you kind of develop it beyond being just a practitioner into actually doing your own research,
+从从业者逐步过渡进入研究者领域
+
+0:44:08.900,0:44:12.520
+don't just focus on the stuff everybody's talking about,
+那么请不要只关注所有人谈论的东西
+
+0:44:12.520,0:44:14.660
+focus on the stuff you think might be interesting,
+请着重研究你认为有趣的东西
+
+0:44:14.660,0:44:19.280
+because the stuff everybody's talking about generally turns out not to be very interesting,
+因为通常大家都谈论的东西不会有趣
+
+0:44:19.280,0:44:26.800
+and the community is very poor at recognizing high-impact papers, when they come out
+学术圈通常不善于识别刚出炉的潜在影响力巨大的论文
+
+0:44:28.220,0:44:31.500
+Batch normalization, on the other hand,
+然后，批量归一化，
+
+0:44:31.500,0:44:33.560
+was immediately recognized as high impact,
+则是一上来就被认为是影响力巨大
+
+0:44:33.560,0:44:36.800
+I definitely remember everybody talking about it in 2015 when it came out,
+我还清晰记得所有人在2015论文刚出来时就高度关注
+
+0:44:36.800,0:44:38.960
+and that was because it  is so obvious,
+这是因为这篇论文太显而易见
+
+0:44:38.960,0:44:44.980
+they showed this picture showing the current then state of the art imagenet model inception,
+论文通过这张图展示了基于Inception模型的SOTA级别精度
+
+0:44:44.980,0:44:50.100
+this is how long it took them to get a pretty good result,
+而这是要达到这样的精度所需要的时间
+
+0:44:50.420,0:44:54.020
+and then they tried the same thing with the new thing called batchnorm,
+然后，他们用批量归一方法做了同样的实验
+
+0:44:54.020,0:44:56.640
+and they just did it way way way quickly,
+结果是速度得到极大的提升
+
+0:44:56.640,0:45:01.580
+and so that was enough for pretty much everybody to go Wow! this is interesting!
+仅此一点就已经震撼住所有的人
+
+0:45:01.580,0:45:08.940
+and specifically they say this thing is called batch normalization and it is accelerating training by reducing internal covariate shift.
+论文是这么介绍的：它叫批量归一，通过降低内在协变量偏移，来加速训练
+
+0:45:08.940,0:45:12.380
+so, what is internal covariate shift?
+那么，到底什么是内在协变量偏移
+
+0:45:12.380,0:45:16.220
+well it doesn't matter, because this is one of those things,
+这个其实不重要，因为这是典型的
+
+0:45:16.220,0:45:21.160
+where researchers came up with some intuition and some idea about the thing they wanted to try,
+研究者通过直觉和实验找到了一个灵感
+
+0:45:21.160,0:45:22.980
+they did it and it worked well,
+通过实验证明很好用，
+
+0:45:22.980,0:45:27.300
+and they post hoc added on some mathematical analysis to try and claim why it worked,
+然后，有针对性的为其添加数学分析，宣称这就是有效果的直接原因
+
+0:45:27.300,0:45:29.540
+and it turned out they were totally wrong.
+但往往最后他们被证明完全错了
+
+0:45:29.540,0:45:33.100
+In the last two months there has been two papers,
+就在过去的2个月里出了2篇论文
+
+0:45:33.100,0:45:35.260
+so it took three years for people to really figure this out,
+也就是说人们花费了3年时间才真正搞明白到底是怎么回事
+
+0:45:35.260,0:45:40.780
+in the last two months there's been two papers that have shown batch normalization doesn't reduce covariate shit at all,
+在过去2个月里这两篇文章证明批量归一根本没有降低协变量偏移
+
+0:45:40.780,0:45:44.160
+and even if it did that has nothing to do with why it works.
+即便是降低了，也不是效果好的真实原因
+
+0:45:44.160,0:45:49.920
+so, I think that's a kind of an interesting insight.
+这里有一个有趣的洞见
+
+0:45:49.920,0:45:56.380
+again, you know which is like why we should be focusing on being practitioners and experimentalists and developing an intuition right,
+这就是为什么我们应该专注与成为从业实践者，实验专家，养成良好的研究直觉
+
+0:45:56.380,0:46:02.480
+what batchnorm does is what you see in this picture here in this paper,
+批量归一的效果由来，可以被这张图很好的解释
+
+0:46:02.480,0:46:07.240
+here are steps or batches, and here is loss,
+这里是训练循环次数/批量数，这里是损失值
+
+0:46:07.240,0:46:12.920
+and here the red line is what happens when you train without batchnorm, very very bumpy,
+红色的部分显示没有批量归一时训练的表现，非常损失值走势非常颠簸
+
+0:46:12.920,0:46:16.660
+and here the blue line is what happens when you train with batchnorm,
+蓝色的曲线，显示的是使用了批量归一下训练的损失值表现
+
+0:46:16.660,0:46:19.100
+not very bumpy at all,
+一点都不颠簸起伏
+
+0:46:19.100,0:46:24.880
+what that means is you can increase your learning rate with batchnorm,
+这也就是说，你可以用批量归一来加大学习率
+
+0:46:24.880,0:46:29.160
+because these bumps represent times that you are really at risk
+因为这些颠簸部分显示模型处于高风险状态
+
+0:46:29.160,0:46:34.720
+of your set of weights jumping off into some awful part of the weight space that it can never get out of again.
+风险就是你的参数被带入非常差的参数空间，不停更新也很难将你带出，模型参数被困在很糟糕的数值区间里
+
+0:46:34.720,0:46:38.420
+so if it is less bumpy, then you can train at a higher learning rate,
+如果不颠簸，那么你可以提高学习率，加速训练（没有进入和被困在糟糕的参数空间里）
+
+0:46:38.420,0:46:41.660
+so that's actually what is going on,
+这就是批量归一的工作原理
+
+0:46:41.660,0:46:45.620
+and here is what it is, this is the algorithm, and it is really simple,
+这里就是批量归一的算法，非常简单
+
+0:46:45.620,0:46:49.560
+the algorithm is going to take a mini-batch,
+这个算法会吃进一个小批量
+
+0:46:49.560,0:46:53.720
+so we have a mini-batch, and remember this is a layer,
+我们有一个小批量，这里的批量归一是一个层
+
+0:46:53.720,0:46:56.560
+so the things coming into it is activations,
+进入到这一层里的是激活值
+
+0:46:56.560,0:47:01.120
+ok, so it is a layer and its going to take in some activations,
+是的，这是一个层结构，要吃进激活值（作为输入值）
+
+0:47:01.120,0:47:06.700
+and so that activations it's calling x1, x2, x3 and so forth,
+这个激活值批量里有x1, x2, x3, ...
+
+0:47:06.700,0:47:09.620
+the first thing we do is that we find the mean with those activations,
+首先我们要找出这些激活值的均值
+
+0:47:09.620,0:47:11.720
+sum divided by the count, that's just the mean,
+求和在除去总量，就是均值
+
+0:47:11.720,0:47:15.240
+and the second thing we do is we find the variance of those activations,
+然后，计算这些激活值的方差
+
+0:47:15.240,0:47:18.480
+(sum of ) difference squared divided by the (count, not) mean is the variance
+差值求和在除以总量，就是方差
+
+0:47:18.480,0:47:19.740
+and then we normalize,
+然后在归一化处理
+
+0:47:19.740,0:47:27.100
+the values minus the mean divided by the standard deviation, is the normalized version,
+每个激活值减去均值，再除以标准差，就是归一化
+
+0:47:27.160,0:47:31.200
+it turns out that bit it's actually not that important, we used to think it was,
+实际上，这部分的计算，没我们之前想象的那么重要
+
+0:47:31.200,0:47:34.420
+but it turns out it was not, the really important bit is the next bit,
+真正重要的是下一步计算
+
+0:47:34.420,0:47:43.060
+we take those values, and we add a vector of biases, they call it beta here,
+我们在归一化处理后，加上一组偏差，论文里叫这组偏差beta
+
+0:47:43.140,0:47:46.320
+and we have seen that before we have used a bias term before,
+我们之前见过，我们用偏差
+
+0:47:46.320,0:47:49.080
+so we are just going to add a bias term as per usual,
+所以，我们就加上一个偏差就好
+
+0:47:49.080,0:47:52.580
+and then we are going to use another thing, that's a lot like a bias term ,
+然后我们要用一个和偏差很相似的东西
+
+0:47:52.580,0:47:56.000
+but rather than adding it, we are going to multiply by it,
+但不是相加，而是乘上这个东西
+
+0:47:56.000,0:48:01.940
+so there is these parameters gamma and beta, which are learnable parameters,
+这就是参数gamma和beta, 它们都是可学习的参数
+
+0:48:01.940,0:48:07.600
+remember at neural net there's only two kinds of number, activations and parameters, these are parameters.
+还记得吗？神经网络有两种数值，激活值和参数值，这里的是参数值
+
+0:48:07.600,0:48:11.180
+They are things that are learnt with gradient descent.
+它们可以通过梯度下降来学习更新
+
+0:48:11.180,0:48:14.740
+This is just normal bias layer, beta,
+这就是常规偏差层，也就是beta
+
+0:48:14.780,0:48:18.640
+and this is a multiplicative bias layer, nobody calls it that but that's all it is.
+这是乘数偏差层，没人这么称呼它，但这就是它的本质
+
+0:48:18.660,0:48:24.720
+it's just like bias but we multiply rather add, that's what batchnorm is.
+它跟偏差一样，只是这里是乘法而不是加法。这就是批量归一。
+
+0:48:24.720,0:48:26.600
+that's what the layer does,
+这就是这个层结构的计算实质
+
+0:48:26.600,0:48:31.600
+but why is that able to achieve this fantastic result?
+但是为什么它能有如此好的效果呢？
+
+0:48:31.600,0:48:37.840
+I am not sure anybody has exactly written this down before,
+我不确定别人是否写过类似我即将要讲述的内容
+
+0:48:37.840,0:48:44.080
+if they have I apologize for failing to cite it, because I haven't seen it,
+如果是，我对无法引用他们的论文而致歉，因为我至今未见过这样的论文
+
+0:48:44.080,0:48:46.520
+but let me explain what's actually going on here,
+现在让我来诠释一下卓越效果背后的原理
+
+0:48:47.520,0:49:01.780
+the value of our predictions, y_hat is some function of our various weights,
+我们的预测值，就是模型参数的函数输出值
+
+0:49:01.780,0:49:07.780
+there could be millions of them, weights, 1 million,
+参数总量可高达数百万，比如1百万参数
+
+0:49:07.780,0:49:11.440
+and it's also a function of course of inputs to our layer,
+模型同时也是输入值的函数
+
+0:49:11.440,0:49:17.360
+this function here is our neural net function, whatever is going on in our neural net,
+这就是我们的神经网络函数，不论内部是怎样的构造
+
+0:49:17.360,0:49:27.880
+and then our loss, let's say it is mean squared error, is just our actuals minus our predicted, squared.
+损失值，可以用均方误差，也就是用预测值与目标值的差，在平方
+
+0:49:27.880,0:49:33.900
+so let's say we are trying to predict movie review outcomes,
+例如，我们要做的预测是影评
+
+0:49:33.900,0:49:35.920
+and they are between 1 and 5,
+预测值的范围在1到5之间
+
+0:49:35.920,0:49:41.720
+and we have been trying to train our model
+我们在训练模型，
+
+0:49:41.720,0:49:49.160
+and the activations at the very end are currently between -1 and 1,
+目前输出值的区间在-1到1之间
+
+0:49:49.160,0:49:54.320
+so they are way off where they need to be, the scale is off, the mean is off,
+这与我们预测值的预期区间相差很远，大小范围与均值偏差都很大
+
+0:49:54.320,0:49:55.560
+so what can we do?
+我们该怎么办呢？
+
+0:49:55.560,0:50:02.160
+one thing we could do would be to try to come up with a new set of weights
+一个方法是采用一组新参数
+
+0:50:02.160,0:50:06.140
+that cause the spread to increase and cause the mean to increase as well,
+来直接提升大小区间和均值
+
+0:50:06.140,0:50:08.220
+but that's going to be really hard to do
+但这个难度很大
+
+0:50:08.220,0:50:11.960
+because remember all these weights interact in very intricate ways,
+因为这些参数之间的相互作用很复杂精巧
+
+0:50:11.960,0:50:15.020
+we have got all those nonlinearities and they all combine together,
+我们还有很多非线性函数处理，叠加混合在一起
+
+0:50:15.020,0:50:21.660
+so to kind of just move up, it's going to require navigating through this complex landscape,
+要让预测值变大，需要一层层穿越非常复杂的参数空间
+
+0:50:21.660,0:50:25.580
+and we use all these tricks like momentum, Adam and stuff like that to help us,
+这是为什么我们采用动量，Adam，等方法来帮助加速穿越参数空间
+
+0:50:25.580,0:50:29.380
+but  it still requires a lot of twiddling around to get there,
+即便如此，依旧需要有大量的工作
+
+0:50:29.380,0:50:33.480
+so that's going to take a long time, and it's going to be bumpy,
+所以，会需要很久，且损失值曲线会很颠簸
+
+0:50:33.480,0:50:35.680
+but what if we did this,
+但是如果我们采用了批量归一
+
+0:50:35.680,0:50:46.780
+what if we went times g plus b, we added 2 more parameters vectors,
+如果我们对函数乘上g，再加上b，我们增加了2组参数数组
+
+0:50:46.780,0:50:51.720
+or now it's really easy right, in order to increase the scale,
+现在就很简单了，为了增加大小空间，
+
+0:50:51.720,0:50:56.780
+that number has a direct gradient to increase the scale,
+这个数值(g)的梯度可以直接增加大小空间幅度
+
+0:50:56.780,0:51:02.200
+to change the mean, that number has a direct gradient to change the mean,
+要改变均值的话，这个数值的梯度可以用来调节均值大小
+
+0:51:02.200,0:51:04.160
+there is no interactions or complexities,
+这里没有参数之间的相互复杂作用
+
+0:51:04.160,0:51:08.640
+it's just straight up and down, straight in and out, and that's what batchnorm does.
+对激活值分布做大小幅度和均值左右移动的调节，就是批量归一的工作的实质
+
+0:51:08.640,0:51:14.540
+so, batchnorm is basically making it easier for it to do this really important thing,
+所以，批量归一，让这个工作非常简单，
+
+0:51:14.540,0:51:17.880
+which is to shift the output up and down, and in and out,
+就是让输出值分布拉伸或压缩，均值左移或右移
+
+0:51:17.880,0:51:21.680
+and that's why we end up with these results.
+这就是为什么我们有如此好的表现
+
+0:51:21.680,0:51:25.280
+so those details in some ways don't matter terribly,
+细节并不是特别重要
+
+0:51:25.280,0:51:29.740
+the really important thing to know is you definitely want to use it right,
+真正重要的是我们一定要使用批量归一
+
+0:51:29.740,0:51:34.740
+or if not, it's something like it, there's various other types of normalization around nowadays,
+如果不用这个批量归一，如今也有其他的归一法可用
+
+0:51:34.740,0:51:38.220
+but batchnorms works great,
+但是批量归一的确非常好用
+
+0:51:38.220,0:51:43.620
+the other main normalization type we use in fastai is something called weight norm,
+fastai中采用的另一个归一法，叫权重归一
+
+0:51:43.620,0:51:48.060
+which is a much more (recent) just in the last few months development.
+这是最近几个月里新开发出来的功能
+
+0:51:48.060,0:51:59.260
+so, that's batch norm, and so what we do is we create a batch norm layer for every continuous variable
+这就是批量归一的原理。接下来我们要做的是，为每一个连续变量构建一个批量归一层
+
+0:51:59.260,0:52:01.600
+and n_cont is the number of continuous variables,
+n_cont是所有连续变量的总数，
+
+0:52:01.600,0:52:06.240
+in fastai n_something always means the count of that thing,
+在fastai中 n_sth 是指某个东西的总数
+
+0:52:06.240,0:52:08.140
+cont always means continuous,
+cont则是指代连续性
+
+0:52:08.140,0:52:11.140
+so then here is where we use it, we grab our continuous variables,
+我们在这里使用它们，我们将连续变量
+
+0:52:11.140,0:52:16.680
+and we throw them through a batch norm layer,  and so then over here you can see it in our model.
+给到批量归一层，在这里你可以看到批量归一出现在模型里
+
+0:52:16.720,0:52:21.220
+one interesting thing is this momentum here,
+还有一个有趣的点是，这里的动量设置
+
+0:52:21.220,0:52:24.040
+this is not momentum like in optimization,
+这不是优化算法中的动量
+
+0:52:24.040,0:52:30.460
+but this is momentum as in exponentially weighted moving average specifically,
+这里的动量是针对指数加权移动平均的计算
+
+0:52:30.460,0:52:37.460
+this mean and standard deviation, we don't actually use a different mean and standard deviation for every mini-batch,
+在计算均值和标准差时，实际上我们没有计算每一个小批量的均值和标准差
+
+0:52:37.460,0:52:42.340
+if we did, it would vary so much, that it would be very hard to train.
+如果这么做，批量之间的均值与标准差的差异会过大，很难训练
+
+0:52:42.340,0:52:48.520
+so instead we take an exponentially weighted moving average of the mean and standard deviation,
+所以，我们采用均值与标准差的指数加权移动平均值
+
+0:52:48.520,0:52:50.960
+okay and if you don't remember what I mean by that,
+如果你不记得了，
+
+0:52:50.960,0:52:55.580
+look back at last week's lesson to remind yourself about exponentially weighted moving averages
+可以回头看上节课的视频复习指数加权移动平均的概念
+
+0:52:55.580,0:53:02.100
+which we implemented in excel for the momentum and Adam gradient squared terms.
+我们在Excel里手写动量和Adam时有讲到
+
+0:53:09.800,0:53:12.840
+You can vary the amount of momentum in a batch norm layer
+你可以在批量归一层中调节动量的大小
+
+0:53:12.840,0:53:16.740
+By passing a different value to the constructor in pytorch,
+只需要在对应的pytorch函数里调整动量值即可
+
+0:53:16.740,0:53:20.000
+If you use a smaller number,
+如果用较小的值，
+
+0:53:20.000,0:53:24.100
+It means that the mean and standard deviation will vary less from mini batch to mini batch,
+这意味着均值和标差在批量之间的差异会比较小
+
+0:53:24.100,0:53:26.360
+and that will have less of a regularization effect,
+这样一来，正则化效果也会减小
+
+0:53:26.360,0:53:30.980
+A larger number will mean the variation will be greater for a mini batch to mini batch,
+更大的值则会让均值和方差在批量间的差异更大
+
+0:53:30.980,0:53:32.940
+That will have more of a regularization effect,
+这样一来，正则化效果会更大
+
+0:53:32.940,0:53:37.900
+so as well as this thing of training more nicely because it's parameterised better
+对动量调节的好，训练也会更轻松
+
+0:53:37.900,0:53:46.080
+this momentum term in the mean and standard deviation is the thing that adds is nice regularization piece
+因为这个对均值和标差的动量设置能产生不错的正则化方法
+
+0:53:46.080,0:53:51.000
+When you add batch norm, you should also be able to use a higher learning rate.
+当你使用批量归一时，你同时能使用更大的学习率
+
+0:53:51.000,0:53:52.940
+So that's our model.
+这就是我们的模型
+
+0:53:52.940,0:53:55.160
+So then you can go lr_find,
+然后我们可以执行lr_find()
+
+0:53:55.160,0:53:57.120
+you can have a look,
+在对学习率作图
+
+0:53:57.120,0:53:58.300
+and then you can go fit
+然后再训练
+
+0:53:58.300,0:53:59.740
+You can save it.
+保存模型
+
+0:53:59.740,0:54:01.080
+You can plot the losses.
+还可以对损失值作图
+
+0:54:01.080,0:54:02.800
+You can fit a bit more
+再进一步训练
+
+0:54:02.800,0:54:09.320
+And we end up at 0.103, the tenth place in the competition was 0.108.
+我们的结果是0.103， 而第十名是0.108
+
+0:54:09.320,0:54:12.360
+So it's looking good. All right
+不错吧！好了
+
+0:54:12.360,0:54:18.520
+Again take it with a slight grain of salt
+当然，对于这个结果，你不应该全信
+
+0:54:18.520,0:54:23.300
+Because what you actually need to do is use the real training (Note: should be testing) set and submit it to kaggle
+因为你实际要做的是用测试数据预测结果，在上传给kaggle来打分
+
+0:54:23.300,0:54:31.960
+But you can see we're very much, you know, amongst the kind of cutting-edge of models at least as of 2015,
+但你能看出我们已经至少达到了2015年的顶级模型水平
+
+0:54:31.960,0:54:35.920
+and as I say they haven't really been any architectural improvements since then,
+而且如我所言，截止目前仍旧没有模型结构上的创新突破
+
+0:54:35.920,0:54:37.960
+there wasn't batch norm when this was around,
+而当时并没有批量归一
+
+0:54:37.960,0:54:42.080
+So the fact we added batch norm means that we should get better results, and certainly more quickly
+因此当我们加上批量归一后，我们应该有更好的成绩，至少会更快
+
+0:54:42.080,0:54:44.040
+and if I remember correctly in their model ,
+如果没记错，在他们的模型里，
+
+0:54:44.040,0:54:47.240
+they had to train at a lower learning rate for quite a lot longer,
+他们采用了很小的学习率训练了很久
+
+0:54:47.240,0:54:52.360
+as you can see this is about less than 45 minutes of training.
+而你看到的，我们只用了不到45分钟
+
+0:54:52.360,0:54:54.920
+So that's nice and fast.
+非常轻松愉快！
+
+0:54:54.920,0:55:00.040
+Any questions?
+有问题吗？
+
+0:55:00.040,0:55:07.500
+(Question) In what proportion would you use dropout versus other regularization errors like weight decay, L2 norms, etc
+（提问）你使用随机失活的频率有多大，相对于其他正则化方法如权值衰减，L2，等等
+
+0:55:07.500,0:55:15.540
+So remember that L2 regularization and weight decay, are kind of two ways of doing the same thing.
+要记住L2和权值衰减，是同一件事的两种不同做法
+
+0:55:15.540,0:55:19.840
+And we should always use the weight decay version, not the L2 regularization version.
+我们应该用权值衰减版本，而非L2版本
+
+0:55:19.840,0:55:26.120
+So there's weight decay, there's batch norm, which kind of has a regularizing effect.
+所以，我们可用的有权值衰减，批量归一也有正则化效果
+
+0:55:26.120,0:55:30.380
+There's data augmentation, which we'll see soon,
+此外，还有数据增强，我们之后会看到
+
+0:55:30.380,0:55:32.600
+and this dropout.
+以及随机失活
+
+0:55:32.600,0:55:36.520
+so, batch norm is pretty much what we always want,
+那么，批量归一，我们几乎时刻都用
+
+0:55:36.520,0:55:37.920
+so that's easy.
+所以这个很简单
+
+0:55:37.920,0:55:41.600
+Data augmentation. We'll see in a moment.
+数据增强，我们稍后会讲到
+
+0:55:41.600,0:55:44.700
+So then it's really between dropout versus weight decay.
+那么，需要细说的是随机失活与权值衰减的使用差异
+
+0:55:44.700,0:55:46.440
+I have no idea.
+这个我也不知道
+
+0:55:46.440,0:55:56.100
+I don't think I've seen anybody to file a compelling study of how to combine those two things.
+我不认为有人做过详尽可靠的研究来比较它们的组合使用效果
+
+0:55:56.100,0:55:58.880
+（提问）Can you always use one instead of the other?
+你是否能用一个取代另一个？
+
+0:55:58.880,0:56:00.540
+Why why not?
+为什么可以，为什么不能？
+
+0:56:00.540,0:56:02.840
+Don't think anybody has figured that out.
+我不认为有人给出过答案
+
+0:56:02.840,0:56:11.720
+I think in practice, it seems that you generally want a bit of both.
+我认为在实操中，你通常两个都会用到
+
+0:56:11.720,0:56:14.960
+You pretty much always want some weight decay,
+你通常总是要用权值衰减的，
+
+0:56:14.960,0:56:18.760
+but you often also want a bit of dropout,
+但你也经常会想用随机失活
+
+0:56:18.760,0:56:26.040
+but honestly I don't know why, I've not seen anybody really explain why, or how to decide.
+但说实话，我也不知道，我没见过有人解释过为什么要这么做以及如何决定的
+
+0:56:26.040,0:56:27.420
+so this is one of these things you have to try out,
+也就是说，这就是众多需要你自己尝试实验中的一个
+
+0:56:27.420,0:56:32.800
+and kind of get a feel for what tends to work for your kinds of problems.
+在实验中感受怎样的的组合使用更适合你所面对的问题
+
+0:56:32.800,0:56:40.360
+I think the defaults that we provide in most of our learners should work pretty well in most situations
+我认为我们提供的多数学习器中的默认设置多数情况下都很好用
+
+0:56:40.360,0:56:42.820
+But yeah, definitely play around with it
+但是，强烈建议大家自己实验尝试
+
+0:56:42.820,0:56:52.120
+Okay, the next kind of regularization we're going to look at is data augmentation.
+好了，下一个要学的正则化，就是数据增强
+
+0:56:52.120,0:56:59.840
+and data augmentation is one of the least well studied types of regularization,
+而数据增强是最不被重视和研究的正则化技巧之一
+
+0:56:59.840,0:57:02.520
+But it's the kind that I think I'm kind of the most excited about
+但它却是最让我兴奋的
+
+0:57:02.520,0:57:10.540
+The reason I'm kind of the most excited about it is that,
+我对它如此兴奋的原因是
+
+0:57:10.540,0:57:14.440
+you basically, there's basically almost no cost to it.
+因为它的无成本的特质
+
+0:57:14.440,0:57:18.240
+You can do data augmentation and get better generalization,
+你可以通过数据增强来实现更好的泛化效果
+
+0:57:18.240,0:57:24.760
+without it taking longer to train, without underfitting to an extent at least.
+而且无需更久的训练，不会造成欠拟合
+
+0:57:24.760,0:57:26.620
+So let me explain
+让我给大家诠释一下
+
+0:57:26.620,0:57:31.040
+So what we're going to do now is we're going to come back to a computer vision
+现在让我们回到机器视觉的案例中
+
+0:57:31.040,0:57:33.860
+And we're going to come back to our pets dataset again.
+我们要回头再用到我们的宠物数据集
+
+0:57:33.860,0:57:36.520
+So let's let's load it in， All right,
+让我们先加载数据
+
+0:57:36.520,0:57:39.140
+our pets dataset, the images were inside the images subfolder.
+我们的宠物数据集，图片都在一个叫images的子文件夹里
+
+0:57:39.140,0:57:42.600
+I'm going to call get transforms as per usual
+像平常一样做变形处理
+
+0:57:42.600,0:57:50.900
+But when we call get transforms, there's a whole long list of things, that we can provide
+当我们做变形处理时，我们可以提供一系列功能设置
+
+0:57:50.900,0:57:54.140
+and so far, we haven't been varying that much at all.
+截至现在，我们还没有做任何相关设置调试
+
+0:57:54.140,0:57:58.200
+But in order to really understand data augmentation
+但为了更好的理解数据增强
+
+0:57:58.200,0:58:01.340
+I'm going to kind of ratchet up all of the defaults
+我将对所有默认值做放大调试实验
+
+0:58:01.340,0:58:09.000
+so, there's a parameter here for what's the probability of an affine transform happening.
+这里有一个函数参数是管控仿射函数发生概率的
+
+0:58:09.000,0:58:11.980
+What's the probability of a light lighting transform happening?
+（这里是）光线效果设置发生的概率值是多少？
+
+0:58:11.980,0:58:14.340
+So I set them both to one? So they're all gonna get transformed
+我将它们设置为1，这样它们的变形设置都必定会发生
+
+0:58:14.340,0:58:18.400
+I'm going to do more rotation, more zoom more lighting transforms and more warping
+我还要做更多的旋转，放大，更多光照，以及扭曲变形处理
+
+0:58:18.400,0:58:21.460
+What are all those mean?
+这些到底是怎样的变形处理呢？
+
+0:58:21.460,0:58:25.960
+well, you should check the documentation and to do that by typing doc,
+你应该看看文档，通过doc来查看
+
+0:58:25.960,0:58:30.920
+and there's a doc, the brief documentation, but the real documentation is in docs.
+这里是文档，是简版文档，完整文档在docs里
+
+0:58:30.920,0:58:35.620
+So I'll click on show in docs, and here it is.
+我点击“show in docs" 进入文档网页
+
+0:58:35.620,0:58:39.220
+Okay, and so this tells you what all those do
+文档会告诉你它们该怎么用
+
+0:58:39.220,0:58:43.760
+But generally the most interesting parts of the docs tend to be at the top
+但是文档中最有趣的内容在最上面
+
+0:58:43.760,0:58:46.900
+Where you kind of get the summaries of what's going on?
+这里是整个文档页面的内容总结
+
+0:58:46.900,0:58:49.440
+And so here there's something called list of transforms,
+这里有一个变形列表
+
+0:58:49.440,0:58:58.660
+and here you can see every transform has a something showing you lots of different values of it, right?
+在这里你会看到每一个变形函数及其不同参数值下的具体表现
+
+0:58:58.660,0:59:01.460
+So here's brightness
+这个是亮度
+
+0:59:01.460,0:59:02.980
+so make sure you read these,
+确保你会学习这些内容
+
+0:59:02.980,0:59:09.180
+and remember these notebooks you can open up and run this code yourself, and get this output
+记住所有这些Notebooks你都可以打开并运行代码，从而获得这样的结果
+
+0:59:09.180,0:59:15.260
+all of these HTML documentation documents are auto-generated from the notebooks,
+所有这些HTML文档都是通过这些notebooks自动生成的
+
+0:59:15.260,0:59:19.760
+in the docs_src directory in the fastai repo
+这些Notebooks都存放在fastai repo 的docs_src文件夹里，
+
+0:59:19.760,0:59:23.360
+So you will see the exact same cats if you try this
+如果你尝试这个代码，会得到一摸一样的猫
+
+0:59:23.360,0:59:28.740
+Sylvain really likes cats, so there's a lot of cats in the documentation
+Sylvian非常喜欢猫，所以文档里有很多猫的图片
+
+0:59:28.740,0:59:33.440
+And I think you know because he's been so awesome at creating great documentation.
+因为他创建了非常棒的文档
+
+0:59:33.440,0:59:35.420
+He gets to pick the cats.
+所以他有权利来选择喜欢的猫图片
+
+0:59:35.420,0:59:42.180
+For example looking at different values of brightness.
+所以，让我们看看不同亮度值的效果
+
+0:59:42.180,0:59:45.800
+What I do here is I look to see two things.
+我要做的是看两个东西
+
+0:59:45.800,0:59:50.520
+The first is for which of these levels of
+transformation.
+首先，看看这个变形的哪些数值水平
+
+0:59:50.520,0:59:53.980
+Is it still clear? What the picture is a picture of 
+对应的图片是清晰的，依旧能看出是原图
+
+0:59:53.980,0:59:56.800
+so this is kind of getting to a point where it's pretty unclear,
+这个数值已经让这张图不够清晰了
+
+0:59:56.800,0:59:58.840
+this is possibly getting a little unclear
+这个数值导致这张图也不够清晰了
+
+0:59:58.840,1:00:03.520
+The second thing I do is I look at the actual dataset,
+第二件要做的事，是查看数据集
+
+1:00:03.520,1:00:07.680
+that I'm modeling or particularly the dataset that I'll be using as validation set,
+也就是模型使用的数据集或者是验证集
+
+1:00:07.680,1:00:12.060
+and I try to get a sense of what the variation in this case in lighting is
+感知一下数据集中图片的光线强弱的幅度
+
+1:00:12.660,1:00:19.040
+so if they are like nearly all professionally taking photos, I would probably want them all to be about in the middle.
+如果这些数据都是专业级图片，我很可能都会将它们（猫狗）拍摄在图片中间位置
+
+1:00:19.040,1:00:25.040
+But if the kind of their photos that are taken inside (by) some pretty amateur photographers.
+如果这些图片是有非专业人士拍摄的
+
+1:00:25.040,1:00:29.020
+They are likely to be, some overexposed some very underexposed, right?
+那么很可能出现过度曝光和欠曝光的情况
+
+1:00:29.020,1:00:33.200
+So you should pick a value of the state of augmentation for brightness,
+所以，你需要选择一个值来设定变形图片的亮度
+
+1:00:33.380,1:00:36.740
+that both allows the image to still be seen clearly,
+这个数值设置既能让变形后的图片依旧有较高辨识度
+
+1:00:36.740,1:00:41.860
+and also represents the kind of data that you're going to be using this to model on in practice
+又能作为一类（独特的）数据来训练模型
+
+1:00:41.860,1:00:44.900
+So you kind of see the same thing for contrast, right?
+同样的要求也适用于对比度变形
+
+1:00:44.900,1:00:49.300
+It'd be unusual to have a dataset with such ridiculous contrast,
+像这样的高强度对比是很荒谬的
+
+1:00:49.300,1:00:53.240
+where perhaps you do in which case you should use data augmentation up to that level,
+如果真的需要有这么大的对比度，你就应该使用这么高数值设置
+
+1:00:53.240,1:00:56.020
+but if you don't then you shouldn't.
+如果不需要，就不要用这么高的数值
+
+1:00:56.020,1:01:06.720
+This one called dihedral is just one that does every possible rotation and flip,
+这个变形叫二面角，基本上是做旋转与翻转
+
+1:01:06.720,1:01:10.500
+and so obviously most of your pictures are not going to be upside down cats
+当然大多数图片不会有倒立的猫
+
+1:01:10.500,1:01:13.900
+so you probably would say hey this doesn't make sense.
+所以，你（看到这些倒立的小猫时）会说这个变形不合理
+
+1:01:13.900,1:01:15.600
+I won't use this for this dataset
+我不会在数据集中使用这个变形
+
+1:01:15.600,1:01:17.960
+but if you're looking at satellite images, of course you would
+但如果你看的是卫星图，你就会需要这个变形
+
+1:01:17.960,1:01:23.880
+On the other hand, flip makes perfect sense so you would include that
+因为卫星图的翻转倒立都很正常，这个变形应该使用
+
+1:01:23.880,1:01:33.060
+a lot of things that you can do with fastaI lets you pick a padding mode,
+fastai里的很多函数允许你使用填充模式
+
+1:01:33.060,1:01:34.700
+and this is what padding mode looks like,
+这里看到的是不同的填充模式的样子
+
+1:01:34.700,1:01:35.840
+you can pick zeros,
+你可以选择零模式
+
+1:01:35.840,1:01:39.380
+you can pick border which just replicates,
+你可以选择边框模式，也就是做复制处理
+
+1:01:39.380,1:01:41.500
+or you can pick reflection
+或者选择反射模式
+
+1:01:41.500,1:01:45.400
+Which as you can see it is as if the last little few pixels are in a mirror
+如你所见，处理效果好像是对最边沿的像素的镜像反射
+
+1:01:45.400,1:01:49.040
+Reflections nearly always better by the way
+顺便说一下，反射模式几乎总是效果更好
+
+1:01:49.040,1:01:54.780
+I don't know that anybody else has really studied this but we've have studied it in some depth
+我不知道其他人是否深入研究这些变形，但我们有
+
+1:01:54.780,1:01:56.860
+Haven't actually written a paper about it
+虽然还没发表到论文里
+
+1:01:56.860,1:02:01.980
+But just enough for our own purposes to say reflection works best most of the time , so that's the default
+但我们做了足够的研究实验来证实反射模式多数情况下表现最好，因此被选为默认模式
+
+1:02:01.980,1:02:07.640
+Then there's a really cool bunch of perspective warping ones
+然后，还有一系列扭曲变形函数
+
+1:02:07.640,1:02:13.720
+Which I'll probably show you by using symmetric warp
+我可能会选择其中的对称扭曲函数来展示效果
+
+1:02:13.720,1:02:19.240
+If you look at the kind of the, we've added black borders to this, so it's more obvious for what's going on
+我们对图片添加了黑色边框，可以凸显（扭曲变形）效果
+
+1:02:19.240,1:02:22.420
+And as you can see what symmetric warp is doing?
+如你所见，对称扭曲到底是怎样的变形呢？
+
+1:02:22.420,1:02:30.920
+it's as if the camera is being moved above or to the side of the object and literally warping the whole thing like that, right?
+就像是相机从上方或从侧面对物体拍照，从而使整个图像被扭曲了一样
+
+1:02:30.920,1:02:36.720
+And so the cool thing is that, as you can see each of these pictures,
+很酷的是，如你所见这些图片，
+
+1:02:36.720,1:02:40.580
+It's as if this cat was being taken kind of from different angles,
+就好像这只猫是从不同角度被拍照的一样
+
+1:02:40.580,1:02:45.180
+right so they're all kind of optically sensible, right?
+所以，从镜头角度来看，这些变形图片都很合理
+
+1:02:45.180,1:02:48.940
+And so this is a really great type of data augmentation
+所以，这是一种非常棒的数据增强技巧
+
+1:02:48.940,1:02:51.920
+It's also one which I don't know of any other library that does it,
+我不知道其他库能直接调用这个技巧
+
+1:02:51.920,1:02:58.560
+or at least certainly one that does it in a way that's both fast and keeps the image crisp as it is in fastai
+至少无法做到像fastai这样不仅速度快而且图片效果清晰
+
+1:02:58.560,1:03:01.700
+so this is like if you're looking to win a kaggle competition,
+所以，如果你想赢得kaggle竞赛
+
+1:03:01.700,1:03:06.580
+this is the kind of thing that's going to like get you above the people that aren't using the fastai library
+这个技巧能让你比所有不用fastai的人更有优势
+
+1:03:06.580,1:03:11.640
+So having looked at all that,
+看完这些图片之后，
+
+1:03:11.640,1:03:17.020
+we are going to add this / have a little get_data function,
+我们要执行这个get_data函数
+
+1:03:17.020,1:03:19.100
+that just does the usual data block stuff,
+这是一个常规的data block代码
+
+1:03:19.100,1:03:22.380
+but we're going to add padding mode explicitly,
+但我们将在函数中设置填充模式的选择
+
+1:03:22.380,1:03:26.560
+so that we can turn on padding mode of zeros, just so we can see what's going on better.
+因此，我们能将填充模式设置为“zeros", 从而方便的观察变形效果
+
+1:03:26.560,1:03:31.700
+FastaI has this handy little function called plot_multi,
+fastai里有一个很方便的小函数叫plot_multi
+
+1:03:31.700,1:03:38.320
+Which is going to create a 3 x 3 grid of plots and each one will contain the result of calling this function
+这个函数将构建一个3x3的图片网格，其中每一个小图片都是有_plot函数生成的
+
+1:03:38.320,1:03:42.720
+Which will receive the plot coordinates and the axis,
+（_plot）函数接收到图片网格坐标和axis
+
+1:03:42.720,1:03:46.140
+and so I'm actually going to plot the exact same thing in every box
+我将给每个网格小图片画同样的东西
+
+1:03:46.140,1:03:50.220
+But because this is a training dataset it's going to use data augmentation.
+但因为这是训练集，所以图片会被做数据增强
+
+1:03:50.220,1:03:55.580
+And so you can see the same doggy,
+因此你能看到相同的小狗
+
+1:03:55.580,1:03:58.480
+using lots of different kinds of data augmentation,
+使用了不同的数据增强变形效果
+
+1:03:58.480,1:04:00.940
+and so you can see why this is going to work really well,
+为什么数据增强这个技术好用的原因，在这里是显而易见
+
+1:04:00.940,1:04:03.700
+because these pictures all look pretty different
+因为这些图片看起来非常不同
+
+1:04:03.700,1:04:08.940
+Right, but we didn't have to do any extra hand labeling or anything.
+但我们无需为这些图片做额外的标注
+
+1:04:08.940,1:04:11.140
+They're like, it's like free extra data.
+它们就像是免费的额外数据
+
+1:04:11.140,1:04:15.580
+Okay, so data augmentation is really really great
+所以，数据增强真的超棒
+
+1:04:15.580,1:04:23.000
+And one of the big opportunities for research is to figure out ways to do data augmentation in other domains
+最大的研究机会之一就是将数据增强应用到其他领域
+
+1:04:23.000,1:04:34.260
+so, how can you do data augmentation with text data or genomic data or histopathology data or whatever, right?
+如何能将数据增强用于文本数据，基因数据，病理切片数据等等
+
+1:04:34.260,1:04:37.300
+Almost nobody's looking at that,
+几乎没有人关注这方面
+
+1:04:37.300,1:04:39.460
+and to me it's one of the biggest opportunities
+对我而言，这是一个潜在影响力巨大的研究机会/机遇
+
+1:04:39.460,1:04:43.600
+that could let you decrease data requirements by like five to ten x.
+它可以帮助我们将数据量需求降低5-10倍
+
+1:04:43.600,1:04:53.180
+So here's the same thing again, but with reflection padding instead of zero padding,
+这里依旧是同一张图，采用了反射模式而非零模式填充
+
+1:04:53.180,1:04:59.380
+and you can kind of see, like see this doggy's legs are actually being reflected at the bottom here,
+你会发现图片底部的小狗的腿部像素有反射效果
+
+1:04:59.380,1:05:09.100
+so, reflection padding tends to create images that are kind of much more naturally reasonable, like in the real world.
+反射模式下生成的图片通常更自然，更贴近现实世界的图片
+
+1:05:09.100,1:05:12.280
+You don't get black borders like this so they do seem to work better
+图片不再有黑边，所以效果会更好
+
+1:05:12.280,1:05:18.560
+Okay, so because we're going to study convolutional neural networks.
+因为我们要学习卷积神经网络
+
+1:05:18.560,1:05:21.300
+We are going to create a convolutional neural network,
+我们这就来构造一个卷积神经网络
+
+1:05:21.300,1:05:24.340
+you know how to create them, so I'll go ahead and create one.
+你们已经知道如何构造它们，现在就创建一个模型
+
+1:05:24.340,1:05:28.000
+I will fit it for a little bit. They will unfreeze it
+我会训练一会，然后解冻模型
+
+1:05:28.000,1:05:34.580
+I will then create a larger version of the data set 352 by 352 and fit for a little bit more
+然后构建一个图片尺寸更大，352x352, 的数据集, 再训练更久一点
+
+1:05:34.580,1:05:38.920
+And I will save it
+然后保存起来
+
+1:05:38.920,1:05:41.960
+okay, so we have a CNN,
+现在我们有了一个CNN模型
+
+1:05:41.960,1:05:46.020
+and we're going to try and figure out what's going on in our CNN
+我们接下来要学习一下CNN背后工作原理
+
+1:05:46.020,1:05:48.140
+and the way we're going to try and figure it out
+我们学习理解的方式是
+
+1:05:48.140,1:05:56.880
+is explicitly specifically that we're going to try to learn how to create this picture
+学习生成这样的一张图片
+
+1:05:56.880,1:05:59.580
+This is a heat map, right?
+这是一张热力图
+
+1:05:59.580,1:06:06.220
+This is a picture which shows me what part of the image did the CNN focus on,
+这张图展示给我们CNN关注的图片的部位在哪里
+
+1:06:06.220,1:06:09.980
+when it was trying to decide what this picture is,
+当CNN尝试判断图中的物体是什么时。
+
+1:06:09.980,1:06:14.980
+so we're going to make this heat map from scratch
+因此我们要从头来构建这样一张热力图
+
+1:06:14.980,1:06:23.620
+When we / So we're kind of at a point now in the course,
+我们已经到了一个阶段
+
+1:06:23.620,1:06:26.580
+where I'm assuming that if you've got to this point,
+我认为如果大家已经学了这么久到达这个阶段
+
+1:06:26.580,1:06:29.240
+You know when you're still here, thank you.
+而且你还在继续，谢谢你
+
+1:06:29.240,1:06:33.800
+Then you're interested enough that you're prepared to kind of dig into some of these details
+也说明你对深入学习背后的细节原理是感兴趣的
+
+1:06:33.800,1:06:39.840
+So we're actually going to learn how to create this heat map without almost any fastai stuff
+这里我们要学习如何构建这张热力图，却不使用任何fastai的工具函数
+
+1:06:39.840,1:06:44.060
+We're going to use pure kind of tensor arithmetic in Pytorch,
+我们只用pytorch中的张量计算函数
+
+1:06:44.060,1:06:46.940
+and we're going to try and use that to really understand what's going on.
+来帮助我们理解背后原理细节
+
+1:06:46.940,1:06:52.760
+So to warn you none of it's rocket science but a lot of it is going to look really new,
+提醒一下大家，这里没有特别难特别高深的知识技巧，但很多东西会感觉比较新
+
+1:06:52.760,1:06:58.240
+so don't expect to get it the first time but expect to like, listen
+所以不要期望一遍就能搞明白，要尝试
+
+1:06:58.240,1:07:02.220
+Jump into the notebook, try a few things, test things out,
+跑跑notebook, 多尝试，多实验
+
+1:07:02.220,1:07:06.527
+look particularly at like tensor shapes, and inputs and outputs to check your understanding
+尤其要关注张量的结构，输入和输出来帮助理解
+
+1:07:06.527,1:07:07.900
+then go back and listen again
+然后再从新把视频看一遍
+
+1:07:07.900,1:07:13.200
+but and kind of try it a few times because
+you will get there, right?
+这么重复几次，肯定会有更好的理解
+
+1:07:13.200,1:07:16.660
+It's just that there's going to be a lot of new concepts,
+难点无非是有很多新概念需要消化
+
+1:07:16.660,1:07:19.060
+because we haven't done that much stuff in pure pytorch
+因为我们没做多少pytorch中的概念学习
+
+1:07:19.060,1:07:23.840
+Okay. So what we're going to do is going to have a seven minute break,
+现在我们先休息7分钟
+
+1:07:23.840,1:07:27.920
+and then we're going to come back and we're going to learn all about the innards of a CNN.
+然后回来，我们就开始学习CNN的内在原理
+
+1:07:27.920,1:07:29.320
+So I'll see you at 7:50
+请大家7：50 回到这里
+
+1:07:29.320,1:07:39.180
+So let's learn about convolutional neural networks,
+现在让我们开始学习卷积神经网络
+
+1:07:39.180,1:07:41.480
+you know, the funny thing is,
+有趣的是，
+
+1:07:41.480,1:07:50.040
+it's pretty unusual to get close to the end of a course and only then look at convolutions,
+在一个深度学习课程快结束时才进入卷积神经网络的学习，是很少见的
+
+1:07:50.040,1:07:58.860
+but like when you think about it,  knowing actually how batch norm works, or how dropout works, or how convolutions work,
+其实你想想看，知道批量归一，随机失活，卷积，都是如何工作的
+
+1:07:58.860,1:08:08.260
+isn't nearly as important as knowing how it all goes together， and what to do with them， and how to figure out how to do those things better.
+其重要性远不如，知道让它们如何组合在一起从而产生更好的效果
+
+1:08:08.260,1:08:21.660
+But you know，we're kind of at a point now， where we want to be able to do things like that
+但是，我们已经到了想要做到这样的事情（手动生成这样的热力图）的阶段了
+
+1:08:21.660,1:08:27.500
+And although you know we're adding this functionality directly into the library so you can kind of run a function to do that
+虽然我们可以直接从fastai中调用函数生成类似这样热力图
+
+1:08:27.500,1:08:32.980
+you know the more you do the more you'll find things that you want to do a little bit differently to how we do them,
+但你会发现，你知道的越多，你越想做些不一样的修改/改进
+
+1:08:32.980,1:08:37.640
+or there'll be something in your domain where you think like, Oh, I could do a slight variation of that.
+或者是因为熟知自己的领域，所以想做些调整处理
+
+1:08:37.640,1:08:44.520
+So you're kind of getting to a point in your
+experience now where it helps to know how to do more stuff yourself,
+所以，你已经到了一个新阶段，想要根据自己的想法来做调整改动
+
+1:08:44.520,1:08:48.000
+and that means you need to understand what's really going on behind the scenes
+这意味着你需要理解背后的工作原理
+
+1:08:48.000,1:08:54.280
+So what's really going on behind the scenes
+那么到底工作原理是什么呢？
+
+1:08:54.280,1:09:03.760
+is that we are creating a neural network that looks a lot like this
+也就是我们要构建一个神经网络，与这个很相似
+
+1:09:03.760,1:09:11.260
+right, but rather than doing a matrix multiply here and here and here,
+但与其在这些地方做矩阵乘法
+
+1:09:11.260,1:09:15.420
+we're actually going to do instead a Convolution
+我们要做的是卷积计算
+
+1:09:15.420,1:09:21.660
+and a convolution is just a kind of matrix multiply which has some interesting properties
+而卷积其实就是另一种矩阵乘法，附带一些有趣的特征属性
+
+1:09:21.660,1:09:26.720
+You should definitely check out this website
+大家应该去这个网站看看
+
+1:09:26.840,1:09:33.860
+setosa.io/ev explain visually where we have stolen this beautiful animation.
+（网站名是）setosa.io/ev 可视化解读，我从这个网站 "偷来"这个特棒的动画视频
+
+1:09:33.860,1:09:36.400
+It's actually a JavaScript thing that you can actually play around with yourself
+这是用Javascript写的，大家可以尝试玩玩
+
+1:09:36.400,1:09:40.960
+in order to show you how convolutions work,
+为了向大家展示卷积的工作原理
+
+1:09:40.960,1:09:46.080
+and it's actually showing you a
+convolution as we move around these little red squares
+通过移动这个红色方框，我们可以看到卷积的变化
+
+1:09:46.080,1:09:51.020
+So here's here's a picture a black and white or grayscale picture, right
+这里是一张黑白或灰色图片
+
+1:09:51.020,1:09:54.120
+and so each 3x3 bit of this picture,
+这里是一个3x3的小图
+
+1:09:54.120,1:09:57.600
+as this red thing moves around, it shows you a different 3x3 part, right?
+当红色图片四处移动时，我们会得到不同的3x3的（值）图片
+
+1:09:57.600,1:10:02.900
+It shows you over here the values of the pixels, right.
+我们可以在这里看到每个像素的值
+
+1:10:02.900,1:10:06.680
+So in fastai's case our pixel values are between 0 and one,
+在fastai中我们的像素值是0到1之间
+
+1:10:06.680,1:10:09.800
+in this case there between 0 and  255, right
+而这里的值则设定在0到255之间
+
+1:10:09.800,1:10:12.500
+So here are nine pixel values,
+这里有9个像素值
+
+1:10:12.500,1:10:15.780
+this area is pretty white. So they're pretty high numbers, Okay
+这个区域非常的白，因为像素值很高
+
+1:10:15.780,1:10:24.420
+And so as we move around you can see the nine big numbers change and you can also see their colors change
+当我们移动（红色小图片）时，可以看到9个很大的数值在变化，同时还能看到颜色在变化
+
+1:10:24.500,1:10:35.620
+Up here is another nine numbers and you can see those in the little X1, X2, X1 here 1, 2, 1,
+这里还有9个数值，这里的x1, x2, x1,  对应这里的1， 2， 1
+
+1:10:35.740,1:10:41.680
+Now what you might see going on is as we move this little red block as these numbers change.
+它们之间的关联是当我们移动红色方框时，这里的数值也都会发生改变
+
+1:10:41.680,1:10:46.400
+We then multiply them by the corresponding numbers up here.
+然后我们为它们乘上对应的这里的数值
+
+1:10:46.400,1:10:49.640
+And so let's start using some nomenclature
+让我们开始学一些新词汇
+
+1:10:49.640,1:10:56.520
+The thing up here. We are going to call the kernel, the convolutional kernel
+这里的数值，我们称之为kernel核， 这里就叫卷积核
+
+1:10:56.520,1:11:00.400
+so we're going to take each little 3x3 part of this image,
+我们先从图片中取一个3x3红色9宫格
+
+1:11:00.400,1:11:03.720
+and we're going to do an element-wise multiplication,
+再对它们做元素逐一乘法
+
+1:11:03.720,1:11:07.520
+of each of the 9 pixels that we are mousing over,
+运算的一边是鼠标所在的红色9宫格数值，
+
+1:11:07.520,1:11:13.000
+with each of the 9 items in our kernel.
+另一边是核中的9个值
+
+1:11:13.000,1:11:16.420
+and so once we multiply each set together we can then add them all up,
+相乘之后，在相加求和
+
+1:11:16.420,1:11:19.760
+and that is what's shown on the right,
+这个值对应右边的这个像素
+
+1:11:19.760,1:11:22.700
+as the little bunch of red things move over there,
+随着红色9宫格移动到这里，
+
+1:11:22.700,1:11:25.340
+you can see there's one red thing that appears over here.
+右边会有这样一个红色像素出现在这里
+
+1:11:25.400,1:11:28.000
+The reason there's one red thing over here,
+这里的红色像素的由来
+
+1:11:28.000,1:11:33.260
+is because each set of 9, after getting through the element-wise multiplication with the kernel,
+是这里的9个像素值与核中的9个值做元素逐一相乘
+
+1:11:33.260,1:11:37.980
+get added together to create one output.
+然后在相加所得的值
+
+1:11:37.980,1:11:47.780
+so therefore the size of this image has one pixel less on each edge than the original as you can see.
+如你所见，这张图的四边都比原图要少一个像素
+
+1:11:47.780,1:11:49.240
+See how there's black borders on it，
+看到这些黑色边框了吗？
+
+1:11:49.240,1:11:55.860
+That's because at the edge the 3x3 kernel can't quite go any further, right?
+这是因为3x3的核无法处理到最边沿的像素
+
+1:11:55.860,1:12:01.720
+So the furthest you can go is to end up with a dot in the middle just off the corner. Ok
+（红色9宫格）最远能走到的地方就是中间格走到鼠标箭头所在的位置
+
+1:12:01.720,1:12:07.640
+So, why are we doing this well, perhaps you can see what's happened
+那为什么我们要做这些运算呢？也许你已经看出了些端倪
+
+1:12:07.640,1:12:16.420
+this face has turned into some white parts outlining the horizontal edges.
+这张图中的人脸转化成为右图中白边勾勒的脸部轮廓
+
+1:12:16.420,1:12:24.740
+How well, the how is just by doing this element wise multiplication of each set of 9 pixels with this kernel
+这是怎么做到的呢？其实就是做红格与核的元素逐一相乘
+
+1:12:24.740,1:12:28.840
+adding them together and sticking the result in the corresponding but over here.
+再将求和的值放入有图对应的位置即可
+
+1:12:28.840,1:12:37.800
+Why is that? creating white spots with the horizontal edges are well, let's think about it
+那为什么能画出这种白边轮廓呢？我们可以试想一下
+
+1:12:37.800,1:12:40.560
+Let's look up here.
+首先看看这里（红色手画椭圆区域）
+
+1:12:40.560,1:12:44.880
+So if we're just in this little bit here, right
+如果我们在这个区域（手画红色线条）
+
+1:12:44.880,1:12:50.760
+then the spots above it all pretty white so they have high numbers.
+那些靠上的像素点颜色较白，所以数值较高
+
+1:12:50.760,1:12:55.340
+So the bits above it, the  big numbers who are getting multiplied by 1 2 1,
+这些靠上的像素点，较大数值会与1，2，1相乘
+
+1:12:55.340,1:12:57.480
+so that's going to create a big number，
+这样一来，将生成更大的值
+
+1:12:57.480,1:13:01.140
+and the ones in the middle are all zeros, so don't care about that.
+而核的中间值都是0，所以不用在意
+
+1:13:01.140,1:13:05.400
+And then the ones underneath are all small numbers because they're all close to 0，
+而下面的值将很小（黑色），因为它们都接近0
+
+1:13:05.400,1:13:07.660
+so that really doesn't do much at all.
+所以它们的值也无足轻重
+
+1:13:07.660,1:13:15.780
+So therefore that little set there is going to end up with right white
+所以通过核相乘再求和之后，得到的是白色像素（求和得到的值很高）
+
+1:13:15.780,1:13:20.160
+Okay, whereas on the other side, right down here.
+如果是在这里，下面一点（红色手画区域）
+
+1:13:20.160,1:13:23.060
+You've got light pixels underneath so they're going to get a lot of negative，
+这个区域下方的像素颜色浅，（乘上核的下方负数值），将生成非常负的数值
+
+1:13:23.060,1:13:31.820
+dark pixels on top which are very small so not much happens.
+而区域上方像素是黑色的，值很小，（再乘上1，2， 1），依旧很小，没什么影响
+
+1:13:31.820,1:13:36.860
+So therefore over here we're going to end up with very negative
+所以，最后相加求和的值是很负的数
+
+1:13:36.940,1:13:50.780
+So this thing where we take each 3x3 area and element wise multiply them with a kernel，
+这里我们用这个3x3矩阵与核做元素逐一乘法
+
+1:13:50.780,1:13:59.140
+and add each of those up together to create one output is called a convolution.
+再相加求和，得到的一个输出值。这个过程，我们称之为卷积
+
+1:13:59.140,1:14:02.140
+That's it. That's a convolution.
+这就是卷积
+
+1:14:02.140,1:14:06.000
+So that might look familiar to you right,
+这个看起来很熟悉，对吧
+
+1:14:06.000,1:14:11.880
+because what we did back a while ago, is we looked at that Zeiler and fergus paper,
+还记得前面的几节课里，我们看过Zeiler与Fergus的论文
+
+1:14:11.880,1:14:17.820
+where we saw like each different layer and we visualized what the weights were doing.
+其中可视化地展示了每一层参数捕捉的特征
+
+1:14:17.880,1:14:22.640
+and remember how the first layer was basically like finding diagonal edges and gradient.
+还记得吗？第一层参数基本上具备找出对角线条纹路的特征
+
+1:14:22.640,1:14:25.740
+That's because that's what a convolution can do right.
+这就是卷积的功能
+
+1:14:25.740,1:14:27.940
+each of our layers is just a convolution
+每一层就是一个卷积
+
+1:14:27.940,1:14:31.940
+so the first layer can do nothing more than this kind of thing.
+所以，第一层就只是在做这个核所能做的事
+
+1:14:31.940,1:14:37.760
+But the nice thing is the next layer could then take the results of this right，
+但很重要的是，下一层可以利用前一层的所得
+
+1:14:37.760,1:14:43.900
+and it could kind of combine one channel, but  the output of one convolutional filter is called a channel.
+将通道叠加起来，所谓通道就是卷积处理后的结果
+
+1:14:43.900,1:14:50.140
+right so it could take one channel that found top edges and another channel that finds left edges,
+也就是我们可能有一个通道识别了图片的顶部边沿，另一个通道是列了图片的左部边沿
+
+1:14:50.140,1:14:56.700
+and then the layer above that could take those two as input and create something that finds top left corners,
+然后，下一层则可以将这两个通道整合成输入数据，从中提炼出具备识别左上角边沿的能力
+
+1:14:56.700,1:15:00.760
+as we saw when we looked at those Zeiler and Fergus visualizations
+正如我们在这篇论文中所见到的
+
+1:15:00.760,1:15:06.760
+So let's take a look at this from another angle or quite a few other angles
+让我们从另一个或者多个角度在来认识一下
+
+1:15:06.760,1:15:10.980
+and we're going to look at a fantastic post from a guy called Matt Klein Smith,
+我们来看一篇非常棒的博文，作者是Matt Klein Smith
+
+1:15:10.980,1:15:15.120
+who was actually a student in the first year that we did this course,
+当时他还是第一个版本课程的学员
+
+1:15:15.120,1:15:20.260
+and he wrote this as part of his project work back then.
+他写了这篇博文作为他的课程项目
+
+1:15:20.260,1:15:25.100
+and what he's going to show here is, here is our image.
+他要展示的内容是这样的，这里是我们的图片
+
+1:15:25.100,1:15:30.340
+it's a 3 x 3 image and our kernel is a 2 x 2 kernel
+我们的图片大小是3x3, 核大小是2x2
+
+1:15:30.340,1:15:36.140
+and what we're going to do is we're going to apply this kernel to the top left 2x2 part of this image
+我们要将核作用到图片的右上角的2x2的部位
+
+1:15:36.140,1:15:44.620
+and so the pink bit will be correspondingly multiplied by the pink bit the green by the green and so forth.
+两个矩阵中粉色数值相乘，绿色数值相乘，如此类推
+
+1:15:44.620,1:15:49.260
+and they all get added up together to create this top left in the output
+然后所有（4个）乘积结果相加求和得到左上角的值
+
+1:15:49.260,1:16:04.080
+So in other words P Equals alpha times A, beta times B, gamma times D, Delta times E, there it is.
+换言之，P=alpha*A + beta*B + gamma*D + delta*E , 就这样
+
+1:16:04.080,1:16:09.120
+Plus B, which is a bias. Okay, so that's fine. That's just a normal bias
+加上b, b是偏差, 就是一个常规的偏差或偏置
+
+1:16:09.120,1:16:18.180
+So you can see how basically each of these output pixels is the result of some different linear equation.
+如你所见，这一边的输出值，都是这一边的四个不同线性方程计算而来的
+
+1:16:18.180,1:16:19.820
+that makes sense?
+没问题吧？
+
+1:16:19.820,1:16:25.380
+and you can see these same four weights are being moved around because this is our convolutional kernel.
+你可以看到这四个参数值，也就是卷积核，在图片上四处移动
+
+1:16:25.380,1:16:30.140
+Here the way of looking at it from that,
+这是另一种理解卷积的方式
+
+1:16:30.140,1:16:34.060
+Which is here is a classic neural network view,
+这里是一个经典的神经网络的视角
+
+1:16:34.060,1:16:43.100
+and so P now is result of multiplying every one of these inputs by a weight
+每一个P值都是所有的输入值与参数相乘
+
+1:16:43.100,1:16:47.520
+and then adding them all together, except the gray ones.
+然后，所有乘积结果相加，除了这些灰色的线（乘积结果，被忽略了）
+
+1:16:47.520,1:17:01.620
+I've got to have a value of zero, right? Because remember P was only connected to A, B, D and E, A, B D P.
+我需要将灰色的参数都被设置为0。因为P是由ABDE这四条彩色线汇集而成，只是ABDE这四个值。
+
+1:17:01.620,1:17:08.880
+So in other words, remembering that this represents a matrix multiplication.
+换言之，（神经网络图）展示的是矩阵乘法
+
+1:17:08.880,1:17:14.140
+Therefore we can represent this as a matrix multiplication
+所以，我们可以用矩阵乘法（左上角图）的模式图展示出来
+
+1:17:14.140,1:17:22.900
+so here is our list of pixels in our 3x3 image flattened out into a vector.
+这里是我们3x3图片数据被整平成一个向量数组
+
+1:17:22.900,1:17:27.560
+and here is a matrix vector multiplication plus bias
+这样我们就有了一个矩阵与向量的乘法，再加上偏置向量
+
+1:17:27.560,1:17:31.400
+and then a whole bunch of them. We're just going to set to zero.
+然后矩阵中很多数值都被设置成了0
+
+1:17:31.400,1:17:40.740
+All right, so you can see here. We've got a zero zero zero zero zero, which corresponds to zero zero zero zero zero
+看这里，我们有这些值都是0， 对应这个理解版本中这里的0
+
+1:17:40.740,1:17:47.620
+So in other words a convolution is just a matrix multiplication,
+换言之，卷积就是一个矩阵乘法
+
+1:17:47.620,1:17:52.500
+where two things happen, some of the entries are set to zero all the time,
+这里要注意两件事：一，每一行数据中的一些值永远都是0
+
+1:17:52.500,1:17:57.100
+and all of the ones are the same color always have the same weight.
+矩阵中相同颜色的值是数值相等的参数
+
+1:17:57.100,1:18:03.400
+So when you've got multiple things with the same weight that's called weight tying, Okay
+当你有多个行数据，但含有相同的参数，这叫做权重拴连
+
+1:18:03.400,1:18:09.360
+so, clearly we could implement a convolution using matrix multiplication,
+我们当然可以用矩阵乘法来做卷积
+
+1:18:09.360,1:18:12.440
+but we don't because it's slow.
+但我们不这么做否则太慢
+
+1:18:12.440,1:18:19.260
+so, in practice, our libraries have specific convolution functions that we use,
+实际上，我们的库里有现成的卷积函数可用
+
+1:18:19.260,1:18:22.060
+and they're basically doing this,
+它们基本上在做这个工作
+
+1:18:22.060,1:18:23.940
+which is this
+也就是这个计算过程
+
+1:18:23.940,1:18:25.580
+which is this equation,
+也就是这个等式
+
+1:18:25.580,1:18:28.800
+which is says the same as this matrix multiplication
+也就是做这个矩阵乘法
+
+1:18:28.800,1:18:33.280
+And as we discussed, we have to think about padding,
+如我们所讨论的，我们还必须考虑填充问题
+
+1:18:33.280,1:18:41.660
+because if you have a 3 by 3 kernel and a 3 by 3 image, then that can only create one pixel of output.
+因为一个3x3核，对应3x3的图，只产出1个值
+
+1:18:41.660,1:18:44.540
+There's only one place that this 3x3 can go.
+3x3d的核在图片中只有一个可移动的地方
+
+1:18:44.540,1:18:49.720
+so if we want to create more than one pixel of output we have to do something called padding,
+所以如果我们要产出更多输出值，我们需要做填充
+
+1:18:49.720,1:18:54.040
+which is to put additional numbers all around the outside.
+就是在图片周边加一圈数值
+
+1:18:54.040,1:18:58.420
+so, what most libraries do is that they just put a layer of zeros,
+多数库的做法是加一圈0
+
+1:18:58.420,1:19:02.260
+a bunch of zeros of all around the outside.
+用0绕图片一圈
+
+1:19:02.260,1:19:08.320
+So for 3x3 kernel, a single zero on every edge piece here
+对于一个3x3的核，（如果）给图片的四边都只加一层0，
+
+1:19:08.320,1:19:10.400
+and so once you've pad it like that,
+一旦像这样完成填充值
+
+1:19:10.400,1:19:13.840
+you can now move your 3x3 kernel all the way across,
+你可以让3x3核遍历原图片中的所有像素点
+
+1:19:13.840,1:19:16.880
+and give you the same output size that you started with
+产出与原图片大小相同的输出矩阵
+
+1:19:16.880,1:19:24.620
+Okay, ow as we mentioned in fastai we don't normally, necessarily use zero padding,
+我们说过fastai中零模式填充并不常用也不必要
+
+1:19:24.620,1:19:27.000
+where possible we use reflection padding.
+只要可以，我们都会采用反射模式
+
+1:19:27.000,1:19:31.380
+although for these simple convolutions, we often use zero padding
+但对于这些简单卷积，我们却常用零模式
+
+1:19:31.380,1:19:35.960
+because it doesn't matter too much in a big image. It doesn't make too much difference.
+因为对于大图而言没什么区别。在这里差异不大
+
+1:19:35.960,1:19:44.560
+Okay, so that's what a convolution is
+这就是卷积
+
+1:19:44.560,1:19:54.600
+so a convolutional neural network wouldn't be very interesting if it can only create top edges.
+如果卷积神经网络只能识别顶部边沿，那就太无趣了
+
+1:19:54.600,1:19:59.300
+So we have to take it a little bit further,
+我们需要进一步挖掘潜力
+
+1:19:59.300,1:20:10.660
+So if we have an input
+如果我们有一个输入值
+
+1:20:10.660,1:20:20.500
+And it might be you know standard kind of red-green-blue picture, Right
+它可以是标准的红绿蓝的彩色图片
+
+1:20:20.500,1:20:32.680
+Then we can create a kernel a 3x3 kernel, like so
+我们可以构建一个3x3的核，像这样
+
+1:20:32.680,1:20:38.620
+and then we could pass that kernel over all of the different pixels,
+我们可以让这个核跑遍图片上所有像素点
+
+1:20:38.620,1:20:42.460
+but if you think about it, we actually don't have a 2d input anymore.
+但仔细一想，我们实际上不再拥有2D的输入值
+
+1:20:42.460,1:20:45.960
+We have a 3d input, a rank 3 tensor
+我们有的是3D输入值，秩为3的张量
+
+1:20:45.960,1:20:54.480
+so, we probably don't want to use the same kernel values for each of red and green and blue,
+所以，我们不会想要用同样的核来跑遍红绿蓝这三个矩阵
+
+1:20:54.480,1:20:57.640
+because for example if we're creating a green frog detector,
+因为如果我们要构建一个绿青蛙识别器
+
+1:20:57.640,1:21:02.340
+we would want more activations on the green then we would on the blue
+我们会需要在绿色矩阵上有更多激活值，而非其他颜色
+
+1:21:02.340,1:21:07.460
+Right, or if we're trying to find something that could actually find a gradient that goes from green to blue,
+如果我们要识别颜色过度特征，从绿色到蓝色
+
+1:21:07.460,1:21:12.380
+then the different kernels for each channel need to have different values in,
+这样就需要核用不同的值对不同的通道做运算
+
+1:21:12.380,1:21:19.020
+so therefore we need to create a 3 by 3 by 3 kernel
+这就是为什么我们要构建一个3x3x3的核
+
+1:21:19.020,1:21:25.580
+Okay, so this is still our kernel,
+这就是我们的核
+
+1:21:25.580,1:21:32.060
+and we're still going to vary it across the height and the width,
+我们将依次在图片行与列上移动核
+
+1:21:32.060,1:21:36.720
+But rather than doing an element-wise multiplication of 9 things
+但不再是每次9个值的元素逐一乘法
+
+1:21:36.720,1:21:42.240
+We're going to do an element-wise multiplication of 27 things, 3 by 3 by 3
+而是27个值的矩阵乘法，基于3x3x3(的张量乘法)
+
+1:21:42.240,1:21:45.200
+And we're still going to then add them up into a single number.
+然后在相加求和，得到一个值
+
+1:21:45.200,1:21:55.040
+So as we pass this cube over this, and the kind of like   a little bit   that's going to be sitting behind it, right,
+那么当我们将核移动到图片上时，像这样，完全对应嵌入
+
+1:21:55.040,1:22:03.220
+as we do that part of the convolution, it's still going to create just one number
+这样张量乘法运算得到的依旧是一个值
+
+1:22:03.220,1:22:07.200
+because we do an element-wise multiplication of all 27 and add them all together
+因为我们做的就是27个值的乘法再相加
+
+1:22:07.200,1:22:20.040
+So we can do that across the whole padded single unit, padded input and so we started with 1 2 3 4 5 by 5
+我们对图片加一圈数值，图片的长与宽原本是5，（之后就是7）
+
+1:22:20.040,1:22:25.460
+So we're going to end up with an output. That's also five by five
+我们将得到一个输出矩阵，大小是5x5
+
+1:22:25.460,1:22:32.700
+right, but now input was three channels and our output is only one channel
+现在我们的输入值是3个通道，输出值是一个通道
+
+1:22:32.700,1:22:37.000
+Now we're not going to be able to do very much with just one channel,
+但我们对一个通道的数据能做的事不多
+
+1:22:37.000,1:22:40.380
+because all we've done now is found the top edge
+因为我们现在能做的也就是识别顶部边沿
+
+1:22:40.380,1:22:47.580
+How we're going to find a side edge and a gradient and an area of constant white
+而要识别两侧边沿，渐变色，成片的白色区域该怎么办呢？
+
+1:22:47.580,1:22:50.280
+Well, we're going to have to create another kernel
+我们需要构建另一个核
+
+1:22:50.280,1:22:59.580
+and we're going to have to do that, convolved over the input,
+我们再用这个核对输入值做一遍计算
+
+1:22:59.580,1:23:03.460
+and that's going to create another 5x5
+然后再生成一个5x5矩阵
+
+1:23:03.460,1:23:12.660
+and then we can just stack those together across this there's another axis
+然后我们将所有的这些矩阵叠加在一起，形成一个新的轴/维度
+
+1:23:12.660,1:23:21.740
+and we can do that lots and lots of times and that's going to give us another rank 3 tensor output
+上述操作重复多次之后，就能得到一个秩为3的张量输出值
+
+1:23:21.740,1:23:26.200
+So that's what happens in practice
+这就是在实际运算中发生的实质内容
+
+1:23:26.200,1:23:39.800
+In practice we start with an input which is 
+H by W by (three color images) 3 
+实操中，我们的输入值是高x宽x3
+
+1:23:39.800,1:23:43.320
+We pass it through a bunch of convolutional kernels,
+我们让它通过一系列卷积核
+
+1:23:43.320,1:23:46.300
+but we can pick how many (kernels) we want,
+但我们能自主选择核的数量
+
+1:23:46.300,1:23:56.560
+and It gives us back an output of height by width by however many kernels we had
+这样我们就得到了一个大小是高x宽x核数的输出值
+
+1:23:56.560,1:24:02.220
+and so often that might be something like 16 in the first layer
+我们经常将核数定为16
+
+1:24:02.360,1:24:07.220
+And so now we've got 16 channels they're called,
+现在我们有16个通道，我们把核数在这里成为通道数
+
+1:24:07.220,1:24:14.440
+16 channels representing things like how much left edge was on this pixel,
+这16个通道有的是判断某个像素上有多少左边角的成分，
+
+1:24:14.440,1:24:15.980
+how much top edge was in this pixel?
+有多少顶部边角成分在这个像素中？
+
+1:24:15.980,1:24:25.200
+how much blue to red gradient was on  this set of 2709 pixels each with RGB
+有多少蓝到红的渐变色在这个像素里？
+
+1:24:25.200,1:24:27.300
+and so then you can just do the same thing right?
+然后继续同样的操作
+
+1:24:27.300,1:24:34.420
+You can have another bunch of kernels
+再构建一系列的核
+
+1:24:34.420,1:24:45.760
+And that's going to create another output rank 3 tensor again height by width by whatever might still be 16.
+这将再生成一个秩为3的张量，高x宽x很可能依旧是16，
+
+1:24:45.760,1:24:51.620
+Now what we really like to do is as we get deeper in the network,
+当我们进入更深层时，我们要做的是
+
+1:24:51.620,1:24:54.020
+we actually want to have more and more channels
+提升通道数量
+
+1:24:54.020,1:24:57.720
+We want to be able to find like a richer and richer set of features
+我们想找到更多丰富的特征
+
+1:24:57.720,1:25:01.620
+so that after a few, as we saw in the Zeiler and Fergus paper by layer 4 or 5
+如Zeiler and Fergus论文所示，进入到第4-5层时
+
+1:25:01.620,1:25:05.840
+we've kind of got eyeball detectors and fur detectors and things right?
+我们获得了眼睛和毛发的识别器的能力
+
+1:25:05.840,1:25:07.120
+So you really need a lot of channels
+这是我们需要很多的通道的原因
+
+1:25:07.120,1:25:11.320
+so in order to avoid our memory going out of control
+但为了规避耗尽内存
+
+1:25:11.320,1:25:21.560
+from time to time we create a convolution where we don't step over every single set of 3x3,
+我们时不时用采用一个卷积层，它不对每一个输入值像素做处理
+
+1:25:21.560,1:25:25.800
+but instead we skip over two at a time
+而是跳过一个像素去处理下一个
+
+1:25:25.800,1:25:30.120
+So we would start with a 3x3 centered at (2,2)
+也就是让3x3的核以(2,2)为中心点开始移动，
+
+1:25:30.120,1:25:35.680
+and then we'd jump over to (2, 4), (2, 6), (2, 8) and so forth
+下一步是(2,4)，然后是(2,6), 再是(2,8)，依次推进
+
+1:25:35.680,1:25:41.100
+and that's called a stride 2 convolution
+这就是步长为2的卷积
+
+1:25:41.100,1:25:47.580
+and so what that does is it looks exactly the same right? It's still just a bunch of kernels
+这有什么特别之处吗？看上去是一样的，依旧是一堆核
+
+1:25:47.580,1:26:01.340
+But we're just over 2 at a time, right we're skipping every alternate input pixel
+我们每两个像素一跳，也就是要跳过一个像素
+
+1:26:01.340,1:26:09.060
+and so the output from that will be h/2 by w/2.
+导致输出值的高和宽都减半
+
+1:26:09.060,1:26:12.560
+And so when we do that, we generally create twice as many kernels,
+这么做的同时，我们会让核数翻倍
+
+1:26:12.560,1:26:19.960
+so we can now have say 32 activations in each of those spots.
+也就是说我们输出的通道数是32
+
+1:26:19.960,1:26:25.920
+And so that's what modern convolutional neural networks kind of tend to look like right,
+这就是当下的卷积神经网络基本模样
+
+1:26:25.920,1:26:37.600
+and so we can actually see that, if we go into our pets and we grab our CNN right,
+我们可以实际看看，如果用宠物数据，构建一个CNN
+
+1:26:37.600,1:26:44.580
+and we're going to take a look at this particular cat, so if we go x,y = data.valid_ds(idx).
+我们通过x,y = data.valid_ds(idx)来调取这只猫图片
+
+1:26:44.580,1:26:45.660
+So it's just grab the 0th
+这只猫的序号是0
+
+1:26:45.660,1:26:49.440
+We'll go .show() and we'll print out the value of y
+我们用x.show()打印图片，在打印它的名称
+
+1:26:49.440,1:26:53.440
+Apparently this cat is of category Main Coon
+显然这只猫是缅因猫
+
+1:26:53.440,1:26:58.400
+so until a week ago I was not at all familiar that there's a cat called a Maine Coon
+但一周前我完全不知道缅因猫的存在
+
+1:26:58.400,1:27:04.120
+having spent all week with this particular cat, I am now deeply familiar with this, Maine Coon
+花了一周时间研究这只猫，我现在对它相当的熟悉
+
+1:27:04.120,1:27:10.540
+So we can, if we go learn.summary
+如果执行learn.summary
+
+1:27:10.540,1:27:16.220
+Remember that our input we asked for was 352 by 352 pixels
+还记得我们的图片大小是352x352
+
+1:27:16.220,1:27:21.380
+Generally speaking, the very first convolution tends to have a stride 2.
+一般而言，第一个卷积的步长都设置为2
+
+1:27:21.380,1:27:25.540
+So after the first layer its 176 by 176
+经过卷积之后的图片大小是176x176
+
+1:27:25.540,1:27:28.280
+So this is learn.summary.
+这是learn.summary()所展示的
+
+1:27:28.280,1:27:32.780
+We'll print out for you the output shape up to every layer 176 by 176,
+我们在这里打印出每层的输出值，这里是176x176
+
+1:27:32.780,1:27:39.260
+and the first set of convolutions is has 64 activations
+第一层的通道/核数是64
+
+1:27:39.260,1:27:46.540
+and we can actually see that if we type in learn.model
+我们可以进一步通过learn.model来观察
+
+1:27:46.540,1:27:54.300
+You can see here. It's a Conv2d, with three input channels and 64 output channels
+看这里，第一层是conv2d, 输入3通道，输出64通道
+
+1:27:54.300,1:27:57.980
+And it's stride of 2
+步长是2
+
+1:27:57.980,1:28:03.740
+And interestingly it actually starts with a kernel size of 7 by 7
+有趣的是，一上来用的核大小是7x7
+
+1:28:03.740,1:28:07.880
+So like nearly all of the convolutions are 3 by 3. see they are all 3 by 3
+但几乎所有的核的大小都是3x3
+
+1:28:07.880,1:28:14.260
+Right for reasons we'll talk about in part two, we often use a larger kernel for the very first one
+原因会在part2中讲，我们通常让第一层核更大
+
+1:28:14.260,1:28:17.880
+if you here's a larger kernel you have to use more padding,
+如果核更大，意味着填充数也要更多
+
+1:28:17.880,1:28:23.420
+so we have to use kernel size int divide by 2 padding to make sure we don't lose anything anyway,
+用核大小整除2就是填充数量，确保不丢失输出图片像素
+
+1:28:23.420,1:28:33.640
+anyway so we're now have 64 output channels and since it was stride 2 - it's now 176 by 176 and then
+现在我们输出通道数是64，步长为2，输出大小176x176
+
+1:28:33.740,1:28:45.760
+as we go along you'll see that from time to time, we halved go from 88 by 88 to 44 by 44 for the grid size so that was a Conv2d
+时不时，我们用conv2d将图片像素从88x88降到44x44
+
+1:28:45.760,1:28:49.600
+and then when we do that, we generally double the number of channels
+同时我们会让通道数翻倍
+
+1:28:49.600,1:28:58.920
+So we keep going through a few more Convs
+如此在通过一系列卷积层
+
+1:28:58.920,1:29:02.560
+and they've as you can see they've got batch norm and ReLU, that's kind of pretty standard and
+你会看到它们都有批量归一和ReLU,这些都是标准设置
+
+1:29:02.560,1:29:09.200
+Eventually we do it again another stride2 conv, which again doubles.
+然后我们再做依次conv2d，通道再次翻倍
+
+1:29:09.200,1:29:11.700
+Okay. We can have about 512 by 11 by 11
+这样就有了输出张量512x11x11
+
+1:29:11.700,1:29:23.140
+and That's basically where we finish the main part of the network, we end up with 512 channels 11 by 11
+这就是模型主体部分，以512x11x11结束
+
+1:29:23.140,1:29:29.700
+Okay, so we're actually at a point, where we're going to be able to do this heat map now
+现在，我们就可以开始做这张热力图了
+
+1:29:29.700,1:29:31.660
+So let's try and work through it
+我们一步一步来做
+
+1:29:31.660,1:29:39.840
+Before we do I want to show you how you can do your own manual Convolutions because it's kind of fun
+首先，我想教大家手动做自己的卷积，因为这很酷
+
+1:29:39.840,1:29:47.460
+so we're going to start with this picture of a Maine Coon and I've created a convolutional kernel
+我们从这张缅因猫图开始，我构建了一个卷积核
+
+1:29:47.460,1:29:54.280
+and so as you can see, this one has a right edge and a bottom edge with positive numbers
+你看，核能识别右侧与下方边沿，因为是正数
+
+1:29:54.280,1:29:56.800
+and just inside that it's got negative numbers
+中间都是负数
+
+1:29:56.860,1:30:00.700
+So I'm thinking this should show me bottom-right edges
+我认为这个核能识别右下方的边角
+
+1:30:00.700,1:30:05.460
+Ok, so that's my tensor.
+这是我的张量
+
+1:30:05.460,1:30:16.000
+now one complexity is that 3x3 kernel cannot be used for this purpose,
+有一个要注意的细节，3x3的核无法用在这里
+
+1:30:16.000,1:30:17.560
+because I need two more dimensions.
+我们需要它再增加两个维度
+
+1:30:17.560,1:30:25.100
+The first is I need the third dimension to say how to combine the red green and blue
+第三个维度是为了对应红绿蓝这三个通道
+
+1:30:25.100,1:30:31.020
+So what I do is I say dot expand
+所以，我们要做的是.expand()
+
+1:30:31.020,1:30:35.000
+This is my 3x3 and I pop another three on the start
+这是我的核的3x3，我要再加一个维度，数值为3
+
+1:30:35.060,1:30:45.060
+What  .expand does is it says create a 3 by 3 by 3 tensor by simply copying this one 3 times
+.expand通过对3x3矩阵复制3遍，构建了3x3x3的张量，
+
+1:30:45.060,1:30:50.400
+I mean, honestly, it doesn't actually copy it it pretends to have copied it, you know
+事实上，并不是真正复制，我们可以假象是在复制
+
+1:30:50.400,1:30:52.960
+But it just basically refers to the same block of memory.
+它指向的是同一个内存地址
+
+1:30:52.960,1:30:55.460
+So it kind of copies it in a memory efficient way
+所以说是一种内存最高效使用的复制方法
+
+1:30:55.460,1:31:01.900
+So this one here is now 3 copies of that
+这里是3份复制
+
+1:31:01.900,1:31:09.140
+and the reason for that is that I want to treat red and green and blue the same way for this little manual kernel I'm showing you
+因为我想用同一个核来处理红绿蓝三个矩阵
+
+1:31:09.140,1:31:12.720
+and then we need one more access
+然后我们还需要一个维度
+
+1:31:12.720,1:31:19.200
+because rather than actually having a separate kernel like I've kind of printed these as if they were multiple kernels
+因为与其让这些核，像打印出来的那样，分别独立存在
+
+1:31:19.200,1:31:23.860
+what we actually do is we use a rank 4 tensor and
+我们实际生成的是秩数为4的张量
+
+1:31:23.860,1:31:30.100
+so the very first access is for the every separate kernel that we have.
+所以，第一个维度可以区分不同的核
+
+1:31:30.100,1:31:32.680
+So in this case, I'm just going to create one kernel,
+在这里我们只构建一个核
+
+1:31:32.680,1:31:37.280
+so to do a convolution, I still have to put this unit access on the front
+但为了做卷积，我依旧需要保留这个区分核的维度
+
+1:31:37.280,1:31:45.500
+So you can see k.shape is now (1, 3, 3, 3), so it's a 3 by 3 kernel
+你可以看到核的形状是(1,3,3,3), 核本身其实是3x3
+
+1:31:45.500,1:31:49.620
+There are three of them and then that's just the one kernel that I have
+有三个这样的核，合而为一之后的张量只有一个
+
+1:31:49.620,1:31:57.440
+So it kind of takes a while to get the feel for these higher dimensional tensors because we're not used to writing out 4D tensor
+要适应高维度张量需要些时间，毕竟之前很少用4维的
+
+1:31:57.440,1:32:04.480
+but like just think of them like this, a 4D tensor is just a bunch of 3d tensors sitting on top of each other,
+可以这么想，4维的就是多个3维叠加在一起
+
+1:32:04.480,1:32:15.400
+ok so this is our 4D tensor and then you can just call Conv2d passing in some image
+这就是我们的4维张量核，然后可以这样将图片给到conv2d
+
+1:32:15.540,1:32:21.420
+And so the image I'm going to use is the first part of my validation data set and the kernel
+我们要用的图片是验证集的第一张图，这里是核
+
+1:32:21.420,1:32:31.520
+There's one more trick, which is that in pytorch pretty much everything is expecting to work on a mini-batch, not on an individual thing
+还有一个小技巧，因为pytorch里数据是以小批量存在，不单独存在
+
+1:32:31.520,1:32:37.100
+Okay. So in our case we have to create a 
+min-batch of size 1,
+所以，我们要构建一个样本数为1的小批量
+
+1:32:37.100,1:32:42.760
+so our original image is three channels by 352 by 352, height by width.
+我们原始图片的形状是3通道x352x352, 高x宽
+
+1:32:42.760,1:32:53.100
+Remember pytorch is channel by height by width. I want to create a rank 4 tensor , where the first axis is 1,
+记住pytorch的结构是通道x高x宽, 我们的4维张量的第一维数是1
+
+1:32:53.100,1:32:57.880
+in other words, it's a mini batch of size 1 because that's what pytorch expects
+也就是，样本数为1的小批量，这是pytorch所期待的
+
+1:32:57.880,1:33:06.580
+so there's something you can do in both pytorch and numpy which is you can index into an array or a tensor with a special value none
+pytorch和numpy都可以让你用none来增加一个维度，且数量为1
+
+1:33:06.580,1:33:18.160
+and that creates a new unit access in that point, so t is my image of dimensions 3 by  352 by 352,
+这里就新增了一个维数，而原图t是3x352x352
+
+1:33:18.160,1:33:26.640
+t[none] is a rank 4 tensor , a mini batch of one image of 1 by  3 by 352 by 352
+t[none]是一个4维张量，1个图片的小批量，形状是1x3x352x352
+
+1:33:26.640,1:33:32.860
+and so now I can go Conv2d and get back a cat
+现在可以用Conv2d来得到这样的一只猫
+
+1:33:32.860,1:33:35.680
+Specifically my Maine Coon
+也就是我的缅因猫
+
+1:33:35.680,1:33:44.260
+Ok, so that's how you can play around with convolutions yourself
+这就是我们手动构建卷积的流程
+
+1:33:44.260,1:33:49.780
+So, how are we going to do this to create a heat map
+接下来如何创建热力图呢
+
+1:33:49.780,1:33:51.960
+this is where things get fun
+接下来就是好玩的了
+
+1:33:51.960,1:34:12.200
+Remember what I have mentioned, was that I basically have like, my input red-green-blue,
+还记得吗？我们的输入值就是一张三色图片
+
+1:34:12.200,1:34:16.720
+and it goes through a bunch of convolutional layers
+让它通过一系列卷积层
+
+1:34:16.720,1:34:25.440
+Let us write a little line to say a convolutional layer to create activations which have more and more channels
+我们用一条线代表卷积层，输出一个多通道的激活张量
+
+1:34:25.440,1:34:29.400
+and eventually less and less smaller and smaller height by width
+而张量的宽与高是越来越小的
+
+1:34:29.400,1:34:49.240
+Until eventually remember we looked at the summary we ended up with something which was 11 by 11 by 512
+还记得在summary中，我们最终得到的是一个11x11x512的张量
+
+1:34:49.240,1:34:53.440
+there's a whole bunch more layers that we skipped over
+中间还有很多层，我们刚刚跳过未提及
+
+1:34:53.440,1:35:10.020
+Now there are 37 Classes because remember data.c is the number of classes we have
+这里总共37个类别，还记得这就是data.c的功能
+
+1:35:10.020,1:35:14.860
+and we can see that at the end here we end up with 37 features in our model,
+你可以看这里模型最后输出37个特征
+
+1:35:14.860,1:35:21.460
+so that means that we end up with a probability for every one of the 37 breeds of cat and dog
+这意味我们得到37个概率值对应37个猫狗类别
+
+1:35:21.460,1:35:27.680
+So it's a vector of length 37 that's our final output that we need,
+这就是长度37的向量，我们所需的最终输出结果
+
+1:35:27.680,1:35:36.460
+because that's what we're going to compare implicitly to our one hot encoded matrix, which will have a 1 in the location for Maine Coon.
+我们要用它来对比一个独热矩阵，其中对应缅因猫的值是1
+
+1:35:36.460,1:35:47.040
+Yeah, so somehow we need to get from this 11 by 11 by 512 to this 37
+我们要想办法将这个11x11x512转化为37
+
+1:35:47.040,1:35:57.360
+and so the way we do it is we actually take the average of every one of these 11 by 11 faces, we just take the mean
+转化方法是取这11x11个值的均值
+
+1:35:57.360,1:36:06.740
+So we're going to take the mean of this first face, take the mean that gets this one value
+我们对这一面取均值，得到一个值放在这里
+
+1:36:06.740,1:36:13.040
+and then we'll take second of the 512 faces and take that mean and that'll give us one more value
+然后再取下一个面11x11的均值，得到另一个值
+
+1:36:13.040,1:36:23.340
+right we'll do that for every face and that will give us a 512 long vector, Okay
+我们对所以的11x11取均值，得到一个长度512的向量
+
+1:36:23.340,1:36:34.500
+and so now all we need to do, is pop that through a single matrix multiply of 512 by 37
+然后，就是将这个向量输送给一个512x37的矩阵
+
+1:36:34.500,1:36:40.680
+and that's going to give us an output vector of length 37
+这将给我们一个长度37的向量
+
+1:36:40.680,1:36:48.960
+Okay. So this step here where we take the average of each face is called average pooling
+这个取均值的步骤，我们叫它平均汇聚
+
+1:36:48.960,1:36:55.940
+So, let's go back to our model and take a look there it is
+再让我们回到模型里看看
+
+1:36:55.940,1:37:00.940
+here is our final 512 and here is,
+这是我们长度512的向量
+
+1:37:00.940,1:37:03.960
+we will talk about what a concat pooling is in part two
+我们在part2里才会取将AdaptiveConcatPool2d
+
+1:37:04.020,1:37:09.380
+For now, we'll just focus on it, this is a fastai specialty, everybody else just does this average pool
+现在将记住，它是fastai的特殊汇聚函数，其他人用的都是平均汇聚
+
+1:37:09.380,1:37:18.880
+Averagepool2d with an output size of one. So here it is. output averagepool2d with an output size of one
+平均汇聚函数在这里设置输出一个值，画出来就是这样
+
+1:37:18.880,1:37:30.460
+and then, again there's a bit of a special fastai thing that we actually have two layers here,
+然后，这里也是一个fastai独有的，设置了两个层在这里
+
+1:37:30.480,1:37:38.960
+but normally people then just have the one linear layer with the input of 512 and the output of 37
+通常大家只用一个线性层，输入长度512，输出长度37
+
+1:37:38.980,1:37:45.840
+Okay, so what that means is that this little box over here
+这意味着，这里的这个小方格
+
+1:37:45.840,1:37:55.880
+Where we want a one for Maine Coon, we've got to have a box over here which needs to have a high value in that place, 
+它是1代表缅因猫，因此对应这里的小方格的值需要很高
+
+1:37:55.940,1:37:57.560
+so that the loss would be low.
+因此损失值就会很低
+
+1:37:57.560,1:38:05.020
+So if we're going to have a high value there, the only way to get it is with this matrix multiplication
+要获得较大的值，唯一的方法就是通过矩阵乘法
+
+1:38:05.060,1:38:13.400
+it's going to represent a simple weighted linear combination of all of the 512 values here
+这个矩阵将对长度512的向量做加权线性处理
+
+1:38:13.440,1:38:18.460
+So if we're going to be able to say I'm pretty confident, this is a Maine Coon
+如果我们要非常有信心的说，这就是缅因猫
+
+1:38:18.460,1:38:22.580
+Just by taking the weighted sum of a bunch of inputs.
+那么只需要对这一组输入值做加权求和
+
+1:38:22.580,1:38:31.000
+Those inputs are going to have to represent features like how fluffy is it, what color is its nose, how long are its legs
+这些输入值代表不同的特征如毛发长短，鼻子颜色，腿长短
+
+1:38:31.000,1:38:35.700
+How point are its ears, you know, all the kinds of things that can be used
+耳朵多尖，等等所有那些（帮助识别类别的）特征
+
+1:38:35.700,1:38:38.640
+because for the other thing which figures out is this a bulldog,
+因为那些用来识别斗牛狗的特征
+
+1:38:38.640,1:38:44.780
+it's going to use exactly the same kind of 512 inputs with a different set of weights
+也是用同样这512个输入值所代表的特征与另一组权重来判断识别
+
+1:38:44.780,1:38:47.900
+because that's all a matrix multiplication is right
+每个类别的判断都是输入值与一组权重的点积
+
+1:38:47.900,1:38:52.900
+It's just a bunch of weighted sums, a different weighted sum for each output
+也就是加权求和，每个加权求和对应一个类别的输出值
+
+1:38:52.900,1:39:00.280
+Okay, so therefore we know that this you know
+所以我们知道
+
+1:39:00.280,1:39:11.600
+Potentially dozens or even hundreds of layers of convolutions must have eventually come up with an 11 by 11 facefor each of these features
+经过数十甚至上百个卷积层后得到每一个11x11矩阵都对应着一个独特的特征
+
+1:39:11.600,1:39:27.320
+saying in this little bit here, how much is that part of the image like a pointy ear, how much is it fluffy, How much is it like a long leg? How much is it like a very red nodes?
+这个区域的数值告诉我们这个图片区域有多少尖耳朵成分，有多少毛发成分，有多少长腿成分，有多少红鼻子成分
+
+1:39:27.320,1:39:30.760
+Right, so that's what all of those things must represent.
+这就是这个张量所包含的信息
+
+1:39:30.760,1:39:36.920
+So each face is what we call each of these represents a different feature
+每个面11x11矩阵代表一个特征
+
+1:39:36.980,1:39:44.140
+Okay, so the outputs of these we can think of as different features
+所以这些输出值也可以被看成是不同的特征
+
+1:39:44.160,1:39:58.320
+So, what we really want to know then is not so much what's the average across the 11 by 11 to get this set of outputs
+我们真正想知道的并不是这个面11x11的均值
+
+1:39:58.320,1:40:03.080
+But what we really want to know is what's in each of these 11 by 11 spots
+而是这每一个面11x11里面有什么
+
+1:40:03.080,1:40:12.580
+So what if instead of averaging across the 11 by 11, let's instead average across the 512
+如果不是取11x11的均值，而是取长度为512的向量的均值，会怎样呢？
+
+1:40:12.580,1:40:19.660
+if we average across the 512, that's going to give us a single 11 by 11 matrix,
+取512的均值，会给我们一个11x11的矩阵
+
+1:40:19.660,1:40:29.820
+and each item, each grid point in that 11 by 11 matrix will be the average of how activated was that area,
+这样的11x11矩阵上的每个区域，对应的是区域的激活程度，
+
+1:40:29.820,1:40:33.740
+when it came to figuring out that if this was a Maine Coon,
+如果图片是缅因猫的话，
+
+1:40:33.740,1:40:42.480
+how many signs of Maine Coon-ishness was there in that part of the 11 by 11 grid
+对应就是有多少缅因猫成分在这个区域里
+
+1:40:42.480,1:40:46.960
+and so that's actually what we do to create our heat map.
+这就是我们创建热力图的方法
+
+1:40:46.960,1:40:50.500
+So I think maybe the easiest way is to kind of work backwards
+我想最简单的方法就是倒着做
+
+1:40:50.500,1:40:58.100
+Here's our heat map and it comes from something called average activations
+这就是我们的热力图，它是由平均激活值构建的
+
+1:40:58.100,1:41:04.920
+and it's just a little bit of matplotlib and fastai,  fastai to show the image
+只需要一点点matplotlib 和 fastai, fastai用来展示图片
+
+1:41:04.920,1:41:10.820
+and then matplotlib to take the heat map, which we passed in, which was called average activations.
+matplotlib用来做热力图，我们需要向其带入平均激活值
+
+1:41:10.820,1:41:15.620
+hm for heat map, alpha 0.6 means make it a bit transparent,
+hm就是热力图（也就是平均激活值），alpha=0.6是增添透明度，
+
+1:41:15.620,1:41:22.820
+and matplotlib extent means expand it from 11 by 11 to 352 by 352
+extent的设置是为了将11x11矩阵拓展成352x352的图片
+
+1:41:22.820,1:41:26.720
+it is by linear interpolations. It's not all blocky
+interpolation采用线性插值法，这样不会太阻碍图像视线
+
+1:41:26.720,1:41:29.760
+and use a different color map to kind of highlight things
+cmap来设置高亮
+
+1:41:29.760,1:41:31.640
+That's just the matplotlib is not important.
+matplotlib的部分并不重要
+
+1:41:31.640,1:41:36.720
+The key thing here is that average activations is the 11 by 11 matrix we wanted
+关键的是，这里的平均激活就是我们刚刚说过的11x11矩阵
+
+1:41:36.720,1:41:40.720
+Here it is. avg_acts.shape is 11 by 11
+这里avg_acts的形态就是11x11
+
+1:41:40.720,1:41:47.220
+So to get there we took the mean of activations across dimension 0
+acg_acts是对512x11x11的第0维取均值
+
+1:41:47.220,1:41:52.720
+which is what I just said in Pytorch the channel dimension is the first dimension 
+因为pytorch里第0维就是通道纬度
+
+1:41:52.720,1:42:01.820
+so the mean across dimension 0 took us from something of size 512 by 11 by 11 as promised to something of 11 by 11
+因此对第0维做均值处理，将512x11x11转化为11x11
+
+1:42:01.820,1:42:07.340
+so therefore, activations ax contains the activations we're averaging.
+所以，acts 的形态是512x11x11, 是我们做平均激活处理的对象
+
+1:42:07.340,1:42:08.620
+Where did they come from?
+它是怎么来的？
+
+1:42:08.620,1:42:22.940
+They came from something called a hook, so a hook is a really cool, more advanced Pytorch feature,
+它来自pytorchd的hook, 一个较高级的功能
+
+1:42:22.940,1:42:31.880
+that lets you as the name suggests hook into the Pytorch machinery itself and run any arbitrary Python code you want to
+能让你链接到pytorch内部，运行任意python 程序
+
+1:42:31.880,1:42:35.620
+It's a really amazing and nifty thing,
+这是一个非常酷和时髦的技巧，
+
+1:42:35.620,1:42:45.640
+because you know normally when we do a forward pass through a Pytorch module it gives us this set of outputs
+因为通常运行forward时，我们得到的是一系列结果
+
+1:42:45.640,1:42:49.360
+But we know that in the process it's calculated these
+但我们知道在过程中，这些中间结果也是有的
+
+1:42:49.360,1:43:01.760
+So,  what I would like to do is I would like to hook into that forward pass and tell Pytorch. Hey when you calculate this, can you store it for me, please?
+我要做的是，连接hook到pytorch的forward,  让pytorch将中间结果也为我保存下来
+
+1:43:01.760,1:43:08.100
+Okay, so what is this? This is the output of the convolutional part of the model,
+那这是什么呢？这是模型卷积部分的结果
+
+1:43:08.100,1:43:17.400
+so the convolutional part of the model, which is everything before the average pool is basically, all of that, right.
+模型卷积部分，就是平均汇聚之前的所有层（不包括输入层）
+
+1:43:17.400,1:43:24.600
+so thinking back to transfer learning, right
+回顾一下迁移学习
+
+1:43:24.600,1:43:36.880
+you remember with transfer learning we actually cut off everything after the convolutional part of the model and replaced it with our own little bit right,
+我们切掉模型卷积之后的部分，换上我们自己的层
+
+1:43:36.880,1:43:48.600
+so with fastai the original convolutional part of the model is always going to be the first thing in the model and specifically, it's always going to be called
+原始卷积部分位于fastai模型结构的首个位置
+
+1:43:48.600,1:43:56.160
+Assuming so in this case, I'm taking my model and I'm just going to call it M right 
+在这里，我们可以调取模型，并将它赋值给m
+
+1:43:56.160,1:44:02.760
+so you can see, m is this big thing?
+你可以看到m的内容很多
+
+1:44:02.760,1:44:12.040
+But always at least in fastai, always m0 will be the convolutional part of the model.
+至少在fastai里，m[0] 总是模型的卷积部分
+
+1:44:12.040,1:44:18.560
+So in this case we created a, Let's go back and see ,we created a resnet 34
+这里，我们回头看看，创建的是一个Resnet 34
+
+1:44:18.560,1:44:25.040
+So the the main part of the resnet 34, the pre-trained bit we hold on to is in m[0]
+Resnet34 的主体部分，也就是预训练的部分，都在m[0]里
+
+1:44:25.040,1:44:32.740
+And so this is basically it, this is a printout of the Resnet 34 and at the end of it. There is the 512 activations
+基本上，这里打印出来的就是Resnet34, 最后得到的就是那512x11x11张量
+
+1:44:32.860,1:44:44.080
+So what in other words what we want to do is we want to grab m[0] and we want to hook its output
+换言之，我们要做的是调取m[0]，再对它做hook连接
+
+1:44:44.080,1:44:49.540
+So this is a really useful thing to be able to do, so fastai is actually created something to do it for you,
+fastai创建一些工具来帮做我们调取数据
+
+1:44:49.540,1:44:56.680
+which is literally you say hook.output and you pass in the Pytorch module that you want to hook the output of
+你只需要说hook.output再给它m[0]，就完成连接了
+
+1:44:56.680,1:45:06.780
+and so most likely the thing you want to hook is the convolutional part of the model and that's always going to be m0 or learn.model[0]
+你最想连接的就是模型卷积部分，也就是m[0]或者learn.model[0]
+
+1:45:06.860,1:45:12.420
+So we give that hook a name, don't worry about this part. We'll learn about it next week
+我们给这个hook一个名称，不用担心这行代码，下周会学到
+
+1:45:12.420,1:45:18.360
+So having hooked the output, we now need to actually do the forward pass, all right
+连接了hook, 我们依旧需要运行forward正向传递
+
+1:45:18.480,1:45:23.980
+And so remember in Pytorch to actually get it to calculate something which is called doing the forward pass
+还记得pytorch里要计算结果需要运行forward正向传递
+
+1:45:24.040,1:45:26.340
+You just act as if the model is a function
+你就将模型当作一个函数
+
+1:45:26.340,1:45:31.260
+Right, so we just pass in our x mini-batch.
+我们给函数一个小批量
+
+1:45:31.260,1:45:41.620
+So we already had a Maine Coon image, called x, right, but we can't quite pass that into our model
+我们已经有了缅因猫图片，但我们无法直接将它给到模型
+
+1:45:41.620,1:45:47.820
+It has to be normalized and turned into a mini batch and put on to the GPU
+它还需要做归一处理，转成一个小批量，再连上GPU
+
+1:45:47.820,1:45:58.620
+So firstai has a thing called a DataBunch, which we have in data and you can always say data.one_item to create a mini batch with one thing in it
+fastai中有一个数据堆,它赋值在data中，执行data.one_item能给我们一个样本的小批量
+
+1:45:58.620,1:46:04.940
+Ok, and as an exercise at home, you could try to create a mini batch without using data.one_item
+作为一个家庭作业，你可以尝试构建一个小批量，但不用data.one_item
+
+1:46:04.940,1:46:09.500
+So make sure that you kind of learn how to normalize and stuff yourself if you want to
+从而确保你学会如何对数据做归一化处理，如果愿意的话
+
+1:46:09.500,1:46:14.260
+but this is how you can create a Mini batch with just one thing in it
+但这就是你如何构建只含一个样本的小批量
+
+1:46:14.260,1:46:21.220
+and then I can pop that onto the GPU by saying .cuda, that's what I passed in my model.
+然后我们再将数据用.cuda连到GPU上，这样就可以喂给模型了
+
+1:46:21.220,1:46:34.120
+And so the predictions I get out actually don't care about right because the predictions is this thing, which is not what I want, right?
+预测值我不关心，因为并不是我想要的
+
+1:46:34.120,1:46:39.960
+So I'm not actually going to do anything with the predictions. The thing I care about is the hook that I just created
+我不会用预测值做任何事，我只关心刚建好的hook
+
+1:46:39.960,1:46:53.000
+now one thing to be aware of is that when you hook something in pytorch, that means every single time you run that model, assuming you're hooking outputs. It's storing those outputs
+有件事需要注意的是，每当你运行模型，pytorch会存储这些连接hook的结果
+
+1:46:53.000,1:46:57.000
+And so you want to remove the hook when you've got what you want,
+当你得到结果后，你需要移除hook，
+
+1:46:57.000,1:46:58.660
+because otherwise if you use the model again,
+否则你再次使用模型时，
+
+1:46:58.660,1:47:02.060
+it's going to keep hooking more and more outputs, which will be slow and memory intensive
+hook将会连接更多结果，导致速度下降和内存紧张
+
+1:47:02.060,1:47:12.040
+so, We've created this thing, Python calls it a context manager you can use any hook as a context manager at the end of that with block
+因此，我们利用python中的context manager, 在with代码块的末尾
+
+1:47:12.140,1:47:14.480
+It'll remove the hook. Okay?
+将自动移除hook
+
+1:47:14.480,1:47:27.120
+So we've got our hook, and  so now, Pytorch hooks, sorry fastai hooks, always give you something called, or at least the output hooks always give you something called .stored,
+fastai hooks 或者至少是output hooks能给我们 .stored
+
+1:47:27.120,1:47:33.800
+which is where it stores away the thing you asked to hook and so that's where the activations now are
+这里存储这hook连接的内容，也就是我们要的激活值所在
+
+1:47:33.800,1:47:39.220
+so we did a forward pass after hooking the output of the convolutional section of the model,
+在连接了模型卷积部分后，我们做了正向传递
+
+1:47:39.220,1:47:46.820
+we grabbed what it stored, we check the shape. It was 512 by 11 by 11 as we predicted.
+我们调取.stored, 检查数据形状，这就是我们要的512x11x11
+
+1:47:46.880,1:47:56.760
+we then took the mean of the channel axis to get an 11 by 11 tensor
+然后我们对通道取均值，得到11x11张量
+
+1:47:56.760,1:48:01.300
+and then If we look at that, that's our picture.
+这就是我们要的图片
+
+1:48:01.300,1:48:06.240
+So there's a lot to unpack, right lot to unpack
+这里面有太多的内容
+
+1:48:06.240,1:48:13.820
+But if you take your time going through these two sections the convolution kernel section and the heatmap section of this notebook
+如果你反复跑跑卷积和热力图这两个内容的代码
+
+1:48:13.820,1:48:17.260
+like running those lines of code and changing them around a little bit
+反复实验这些代码
+
+1:48:17.260,1:48:21.540
+And remember the most important thing to look at is shape
+记住，最重要的信息就是数据的形状
+
+1:48:21.540,1:48:26.400
+You might have noticed when I'm showing you these notebooks, so very often print out the shape,
+你可能发现当我给大家展示notebook时，经常打印了数据形状
+
+1:48:26.400,1:48:30.660
+and when you look at this shape you want to be looking at how many axes are there?
+当你查看数据形状时，你要看有多少维度
+
+1:48:30.660,1:48:36.960
+That's the rank of the tensor and how many things are there in each axis and try and think why?
+这就是张量的秩数，以及每一个维数里的值是多少，以及为什么
+
+1:48:36.960,1:48:41.300
+try going back to the printout of the summary
+在回头看看模型总结的打印版
+
+1:48:41.300,1:48:43.660
+Try going back to the actual list of the layers
+再去看看模型各个层的设置
+
+1:48:43.660,1:48:46.920
+and try and go back and think about the actual picture we drew
+在看看我们画出的图
+
+1:48:46.920,1:48:49.800
+and think about what's actually going on,
+想想实际背后发生了什么
+
+1:48:49.800,1:48:52.000
+Okay
+
+1:48:53.580,1:48:56.800
+So that's a lot of technical content.
+已经说了很多的技术内容
+
+1:48:56.800,1:49:03.300
+So what I'm going to do now is switch from technical content to something much more important unless we have some questions first
+现在我要从技术转型更重要的内容，首先，还有问题吗？
+
+1:49:03.300,1:49:16.000
+Okay, because in the next lesson, In the next lesson we're going to be looking at generative models
+下节课里，我们要讲生成模型
+
+1:49:16.000,1:49:19.580
+both text and image generative models
+包括文本和图片的生成模型
+
+1:49:19.580,1:49:33.980
+and generative models are where you can create a new piece of text or a new image or a new video or a new sound
+生成模型能生成新的文本，图片，视频，音频
+
+1:49:33.980,1:49:42.200
+and as you probably are aware, this is the area that deep learning has developed the most in the last 12 months
+你可能知道这是深度学习在过去12月里进展最大的领域
+
+1:49:42.200,1:49:58.880
+and we're now at a point where we can generate realistic looking videos, images, audio, and to some extent even text and
+so
+我们现在已经能够生成非常真实的视频，图片，音频，甚至文本等
+
+1:49:58.880,1:50:05.580
+There are many things In this journey, which have ethical considerations?
+这里很多东西都涉及到了伦理方面的考量
+
+1:50:05.580,1:50:09.660
+But perhaps this area of generative modeling is one of the largest ones.
+但生成模型可能是影响范围最大的
+
+1:50:09.660,1:50:15.660
+So before I got into it, I wanted to specifically touch on ethics and data science
+在我讲生成模型之前，我想先说说伦理与数据科学
+
+1:50:15.660,1:50:23.320
+Most of the stuff I'm showing you actually comes from Rachel and
+这里大部分内容都来自Rachel
+
+1:50:23.320,1:50:29.420
+Rachel has a really cool, TEDx San Francisco talk that You can check out on YouTube
+Rachel有一个非常酷的TED旧金山演讲，大家能在Youtube上看到
+
+1:50:29.420,1:50:37.660
+and a more extensive analysis of ethical principles and bias principles in AI which you can find at this talk
+这是一个更深入关于伦理和偏置/歧视在AI原则方面的演讲
+
+1:50:37.660,1:50:40.880
+Here and she has a playlist that you can check out
+这里是她的视频列表
+
+1:50:40.880,1:50:50.120
+We've already touched on an example of bias which was this gender shades study where if you remember?
+大家是否还记得，这是一个关于性别预测方面的偏置问题
+
+1:50:50.120,1:50:58.600
+for example lighter male skin people on IBM's, main computer vision system,
+例如，IBM的主流机器视觉系统，白人男性
+
+1:50:58.600,1:51:07.760
+99.7% accurate and darker females are some hundreds of times less accurate in terms of error
+预测的精度维99.7%但黑人女性的预测错误率是数百倍与白人男性
+
+1:51:07.760,1:51:11.000
+So like extraordinary differences
+这个差异是非常惊人的
+
+1:51:11.000,1:51:18.760
+and so it's interesting to kind of like, okay it's first more important to be aware that not only can this happen technically
+我们需要意识到这样的差异不仅技术上会发生
+
+1:51:18.760,1:51:27.000
+that this can happen on a massive companies rolled out publicly available highly marketed system
+这可以发生在一个巨型公司的高市场曝光率的产品中
+
+1:51:27.000,1:51:31.700
+That hundreds of quality control people have studied and lots of people are using it.
+有数百质量监管人员研究过，更多人使用过这个产品
+
+1:51:31.700,1:51:37.360
+It's it's out there in the world. They all look kind of crazy, right?
+这样的产品每天都在使用。这些不同的系统预测的差异都非常疯狂
+
+1:51:37.360,1:51:46.020
+So it's interesting to think about why and so one of the reasons why is that the data we feed these things
+思考背后的原因是很有意义的，其中一个原因是我们喂给模型的数据
+
+1:51:46.020,1:51:52.460
+but we tend to use, me included, a lot of these datasets kind of unthinkingly
+但是我们，包括我自己，也经常不加思考的使用这些数据
+
+1:51:52.460,1:51:56.800
+right, but like imagenet which is the basis of like a lot of the computer vision stuff we do
+例如Imagenet是我们机器视觉的主要训练数据基础，
+
+1:51:56.800,1:52:02.140
+is over half American and Great Britain
+一半以上的数据图片是由美英两国贡献收集的
+
+1:52:02.140,1:52:12.620
+Right, like when it comes to the countries that actually have most of the population in the world. I can't even see them here.
+但对于人口最多的区域和国家，我却在图中看不到它们
+
+1:52:12.620,1:52:15.120
+They're somewhere in these impossibly thin lines
+它们在这些极其细小的线里
+
+1:52:15.120,1:52:25.120
+because remember these datasets are being created almost exclusively by people in U.S. Great Britain and nowadays increasingly also China
+因为这些数据集几乎全部被美，英构建，以及日益更多的被中国在收集和构建
+
+1:52:25.120,1:52:35.180
+So there's a lot of bias in the content we're creating because of a bias in the kind of people that are creating that content,
+之所以内容存在偏见是因为做内容的人存在偏见
+
+1:52:35.180,1:52:45.360
+even when in theory it's being created in a very kind of neutral way, but you can't argue with the data, right? It's it's obviously not neutral at all
+虽然理论上数据是中立的，但你无法与数据辩论，我们的确看到了偏见
+
+1:52:45.360,1:52:55.940
+and so when you have biased data, creating biased algorithms you then need to say like what are we doing with that?
+当你持有带偏见的数据和算法时，你需要问自己我们会用它来做什么
+
+1:52:55.940,1:53:02.620
+So we've been spend a lot of time talking about image recognition, so a couple of years ago this company deep Lin
+我们谈论过很多图片识别，几年前有一家公司叫deep lint
+
+1:53:02.620,1:53:12.480
+advertised their image recognition system, which can be used to do mass surveillance on large crowds of people
+在广告中宣称他们的机器视觉能用来做人群监控
+
+1:53:12.480,1:53:17.440
+Find any person passing through who is a person of interest in theory
+能在人群中找出任何关注的人
+
+1:53:17.440,1:53:25.040
+and so putting aside even the question of like is it a good idea to have such a system
+先不谈创建这样的系统是否应当
+
+1:53:25.040,1:53:34.060
+You got to  think is it a good idea to have such a system where certain kinds of people are 300 times more likely to be misidentified.
+你应该思考应用这样一个会将某类人错误识别高达300多倍的系统是否合理
+
+1:53:34.060,1:53:40.060
+and then thinking about it, So this is now starting to happen in America.
+而且这样的事情也在美国上演
+
+1:53:40.060,1:53:53.060
+These systems are being rolled out. And so there are now systems in America that will identify a person of interest in a video and send a ping to the local police
+再美国有些系统发现关注的人出现在视频中时会将信息发送给当地警局
+
+1:53:53.060,1:53:59.040
+and so these systems are extremely inaccurate and extremely biased
+但是这些系统是非常不准确且相当有偏见
+
+1:53:59.040,1:54:04.020
+and what happens that of course is if you're in a predominantly black neighborhood
+当你在一个黑人为主的区域里
+
+1:54:04.020,1:54:09.540
+where the probability of successfully recognizing you is much lower
+成功识别你的几率要低很多
+
+1:54:09.540,1:54:13.680
+and You're much more likely to be surrounded by black people
+你很可能周边都是黑人
+
+1:54:13.680,1:54:21.960
+and so suddenly all of these black people are popping up as persons of interest or in a video of a person of interest
+于是突然这些黑人变成了视频中关注对象
+
+1:54:21.960,1:54:26.640
+all the people in the video are all recognized as in the vicinity of a person of interest,
+所有这些人都被判断成关注对象
+
+1:54:26.640,1:54:30.380
+you suddenly get all these pings going off the local police department,
+突然出现大量警示被发送到当地警局
+
+1:54:30.380,1:54:36.740
+causing the police to run down there and therefore likely to lead to a larger number of arrests
+导致大量警力被派出，很容易导致大量拘捕结果
+
+1:54:36.740,1:54:42.380
+which is then likely to feed back into the data being used to develop the systems.
+而这些又会转化为数据喂给这个系统
+
+1:54:42.380,1:54:44.660
+so, this is happening right now.
+这些问题此刻正在发生着
+
+1:54:44.660,1:54:50.800
+And so like thankfully a very small number of people are actually bothering to look into these things.
+幸亏还有很少量人对此关注并深入了解
+
+1:54:50.800,1:54:52.880
+I mean ridiculously small, but at least it's better than nothing
+少的可怜，但好过没有
+
+1:54:52.880,1:55:00.440
+and so for example, then one of the best ways that people get publicity is to do kind of funny experiments like,
+一种获取关注的方法是做有趣的实验，比如
+
+1:55:00.440,1:55:09.400
+let's try the mug shot image recognition system, that's being widely used, and try it against the members of Congress,
+我们可以尝试用犯罪记录照片识别训练模型，再用国会议员照片来测试
+
+1:55:09.400,1:55:17.880
+and find out that there are 28 members of Congress who would have been identified by this system, obviously incorrectly.
+发现有28名议员被系统识别出是由犯罪记录的人
+
+1:55:17.880,1:55:25.400
+Oh, I didn't know that okay, members are black members of Congress. Not at all surprised to hear that
+哦，我真不知道。他们都是黑人议员，这也不奇怪。
+
+1:55:25.400,1:55:27.680
+Thank You Rachel
+谢谢Rachel
+
+1:55:27.680,1:55:35.080
+We see this kind of bias in a lot of the systems we use, it's not just image recognition but text translation,
+这样的偏见存在于很多系统中，不仅仅是视觉识别，还有文本翻译
+
+1:55:35.080,1:55:39.220
+when you convert she as a doctor he is a nurse into Turkish
+当你将“她是医生，他是护士”翻译成土耳其语言时
+
+1:55:39.220,1:55:44.800
+you quite correctly get a dender in specific pronoun, because that's what Turkish uses.
+机器翻译出的土耳其语的人称是无性别差异的，这是正确的
+
+1:55:44.800,1:55:49.860
+You could then take that and feed it back into Turkish with your gender in specific pronoun
+但当你将土耳其语中无性别差异的语句翻译成英语时
+
+1:55:49.860,1:55:55.040
+And you will now get he as a doctor she is a nurse, so the bias again,
+你得到的是“他是医生，她是护士”，明显偏见
+
+1:55:55.040,1:56:00.000
+this is in a massively widely rolled out carefully studied system
+这是一个被大规模使用且仔细研究过的系统
+
+1:56:00.000,1:56:05.460
+and It's not like, even these kind of things, like a little one-off things, then get fixed quickly
+这样的错误，不像那些一次性的问题，得到修正
+
+1:56:05.460,1:56:11.720
+These issues have been identified in Google Translate for a very long time and they're still there and they don't get fixed
+这些问题很早之前就已经被谷歌翻译所了解，但依旧没有改变，还是那样
+
+1:56:11.720,1:56:22.980
+So the kind of results of this, are in my opinion quite terrifying
+这样的结果，让我感觉很可怕
+
+1:56:22.980,1:56:28.960
+Because what's happening is that in many countries including America where I'm speaking from now
+这样的事情在包括美国在内的许多国家都有发生
+
+1:56:28.960,1:56:37.480
+Algorithms are increasingly being used for all kinds of public policy, judicial and so forth purposes,
+算法越来越多的被用于公共政策，审判等用途
+
+1:56:37.480,1:56:43.020
+for example, there's a system called compass, which is very widely used to decide who's going to jail
+例如，有一个叫Compass的入狱审判系统
+
+1:56:43.020,1:56:50.440
+and it does that in a couple of ways, it tells judges what sentencing guidelines they should use for particular cases,
+它的一系列的使用方法，它针对每个案件为法官提供审判指导
+
+1:56:50.440,1:56:57.800
+and it tells them also which people the system says should be let out on bail
+它告知法官那些人应该入狱
+
+1:56:57.800,1:57:07.740
+But here's the thing, white people, it keeps on saying let this person out, even though they end up reoffending and vice versa.
+关键是，这个系统持续倾向于白人不入狱，即使他屡犯不止
+
+1:57:07.740,1:57:17.560
+It's systematically let out by double compared to what it should be, in terms of getting it wrong with white people versus black people
+它错误释放的白人比错误释放的黑人要多两倍
+
+1:57:17.560,1:57:24.600
+so, this is like, kind of horrifying,
+听起来很可怕
+
+1:57:24.600,1:57:29.760
+because I mean amongst other things, the data that it's using in this system
+这个系统所用的数据
+
+1:57:29.760,1:57:33.480
+is literally asking people questions about things like,
+就是诸如以下的问题
+
+1:57:33.480,1:57:35.900
+did any of your parents ever go to jail,
+你的父母是否有入狱历史
+
+1:57:35.900,1:57:45.620
+or do any of your friends do drugs, like they're asking questions about other people who they have no control over
+你的朋友是否用毒品，等一系列他们本人无能为力的问题
+
+1:57:45.620,1:57:57.080
+so not only are these systems biased very systematically biased, but they're also are being done on the basis of data, which is totally out of your control
+所以不仅系统本身有偏见，而且训练数据是受审人本身无关的信息
+
+1:57:57.080,1:58:06.920
+So this is kind of, did you want to add to that, Yeah are your parents divorced is another question that's being used to decide whether you go to jail or not.
+甚至你的父母是否离婚也会决定你是否入狱
+
+1:58:06.920,1:58:14.580
+Okay, so, when we raise these issues kind of on twitter or in talks or whatever,
+当我们将这些问题在推特和演讲中提出来时，
+
+1:58:14.580,1:58:21.140
+there's always a few people, always white men, a few people who will always say like,
+但总是少数，白人男性，会说
+
+1:58:21.140,1:58:26.400
+that's just the way the world is that's just reflecting what the data shows
+世界就是如此，这就是数据本身的信息
+
+1:58:26.400,1:58:28.600
+but when you actually look at it, it's not
+但当你实实在在看着所发生的事，他们说的不对
+
+1:58:28.600,1:58:39.700
+Right. It's actually systematically erroneous and systematically erroneous against people of color, minorities,
+事实上，这是系统性错误，系统性的对有色人种，少数族群，
+
+1:58:39.700,1:58:44.960
+the people who are less involved in creating the systems that these products are based on
+以及不参与系统建设的人的偏见
+
+1:58:44.960,1:58:50.060
+Sometimes this can go a really long way
+有时会甚至会变得很极端
+
+1:58:50.060,1:58:56.960
+So for example in Myanmar, there was a genocide of Thuringia people
+例如在缅甸，发生过对Thuringia族人的屠杀行为
+
+1:58:56.960,1:59:03.260
+and that genocide was very heavily created by Facebook
+这个事件脸谱网牵连甚深
+
+1:59:03.260,1:59:07.920
+not because anybody at Facebook wanted it, I mean heavens, No, I know a lot of people at Facebook
+并非脸谱的员工希望如此，我的很多认识的人都在脸谱网，
+
+1:59:07.920,1:59:11.860
+I have a lot of friends at Facebook. They're really trying to do the right thing,
+很多人都是我的朋友，他们都在努力做正确的事
+
+1:59:11.860,1:59:17.680
+They're really trying to create a product that people like but not in a thoughtful enough way
+他们非常努力的在创造大家喜欢的产品，但思考不够是深入和全面
+
+1:59:17.680,1:59:29.560
+Because when you roll out something when literally in Myanmar a country that most people didn't have, maybe half of people didn't have electricity until very recently
+当你在一个刚刚过半人口用上了电的国家，大面积推行某样东西，
+
+1:59:29.560,1:59:33.960
+and you say hey you can all have free internet as long as it's just Facebook,
+你说你们都可以免费用网，但只能是脸谱网
+
+1:59:33.960,1:59:37.260
+you got to think carefully about what you're doing, right
+你需要非常小心谨慎的思考你的所作所为
+
+1:59:37.260,1:59:41.920
+and then you use algorithms to feed people the stuff they will click on
+你用算法推送更多他们点击的内容
+
+1:59:41.920,1:59:46.180
+and of course what people click on is stuff, which is controversial
+当然，人们点击的内容有的是有争议的
+
+1:59:46.180,1:59:48.440
+stuff that makes their blood boil
+甚至是热血沸腾的事情
+
+1:59:48.440,1:59:56.560
+so when they actually started asking the generals in the Myanmar army that were literally throwing babies onto bonfires
+当他们开始质问缅甸军官部队将婴儿扔进火堆的行为时，
+
+1:59:56.560,2:00:00.220
+they were saying we know that these are not humans
+他们说这些人不是人
+
+2:00:00.220,2:00:06.680
+we know that they are animals because we read the news, we read the internet
+我们知道他们是野兽，因为我们看新闻看上网消息
+
+2:00:06.680,2:00:11.760
+but because this is the stories that the algorithms are pushing
+因为这就是算法推荐的消息和新闻
+
+2:00:11.760,2:00:15.800
+and the algorithms are pushing the stories 
+because the algorithms are good.
+算法推送这些内容，因为算法很擅长
+
+2:00:15.800,2:00:21.560
+They know how to create eyeballs, how to get people watching, and how can I get people clicking,
+发现吸引眼球的内容
+
+2:00:21.560,2:00:28.000
+and again nobody at Facebook said
+let's cause a massive genocide in Myanmar
+当然脸谱网里没有人说让我们引发缅甸的屠杀行为
+
+2:00:28.000,2:00:33.860
+They said let's maximize the engagement of people in this new market on our platform
+他们说让我们最大化的吸引住这个市场中的用户
+
+2:00:33.860,2:00:40.140
+So they very successfully maximized engagement
+他们的确最大化的抓住了用户
+
+2:00:40.140,2:00:56.120
+Yes, Please,  It's just it's important to note people warned executives of Facebook how the platform was being used to incite violence as far back as 2013 2014 2015
+需要注意的是有人持续与2013-2015年警告脸谱网的执行官们，网站被用来煽动暴力
+
+2:00:56.120,2:01:07.240
+and 2015 someone even warned executives that Facebook could be used in Myanmar in the same way that the radio broadcast were used in Rwanda during the Rwandan genocide
+甚至在2015年有人指出脸谱网在缅甸的作用可能会类似收音机在卢旺达屠杀中的用途
+
+2:01:07.240,2:01:14.860
+and as of 2015 Facebook only had four contractors who spoke Burmese working for them
+而2015年脸谱网只有4为缅甸语员工
+
+2:01:14.860,2:01:18.680
+They really did not put many resources into the issue at all.
+他们的确完全没有使用任何资源深入了解
+
+2:01:18.680,2:01:23.380
+Even though they were getting very very alarming warnings about it
+即便收到了非常强的警示
+
+2:01:23.380,2:01:31.840
+So I mean, why does this happen, right? the part of the issue is that ethics is complicated and
+为什么这些会发生？一部分原因是伦理很复杂
+
+2:01:31.840,2:01:37.740
+You will not find Rachel or I telling you how to do ethics.
+你不会听到我和Rachel教大家伦理
+
+2:01:37.740,2:01:44.880
+You know, how do you fix this? We don't know we can just give you kind of things to think about all right,
+我们要如何改变这些？我不知道，我只是提供素材让大家思考
+
+2:01:44.880,2:01:53.120
+another part of a problem, we keep hearing is it's not my problem, I'm just a researcher. I am just a techie. I'm just building a data set.
+另一个原因是，我持续听到人们说，这不是我的问题，我只搞研究，做技术，收集数据
+
+2:01:53.120,2:02:01.180
+I'm not part of a problem, I'm part of this foundation that's far enough away that I can imagine that I'm not part of this right
+我不是问题所在，我所处的位置让我很难想象自己是问题的一部分
+
+2:02:01.180,2:02:11.360
+but You know If you're creating imagenet, and you want it to be successful, you want lots of people to use it, you want lots of people to build products on it, Lots people to do research on top of it.
+如果你构建了ImageNet,你希望很多人使用它，在它上面打造产品，做研究
+
+2:02:11.360,2:02:21.140
+If you're trying to create something that people are using, You want them to use then please try to make it something that won't cause massive amounts of harm
+如果你希望很多人使用的话，你应该确保它不会被用来导致大规模伤害
+
+2:02:21.140,2:02:23.220
+and doesn't have massive amounts of bias
+也不要有大量的偏见
+
+2:02:23.220,2:02:27.280
+and It can actually come back and bite you in the ass right
+这些伤害和偏见是可以反过头来伤害到你
+
+2:02:27.280,2:02:37.440
+the Volkswagen engineer who ended up actually encoding the thing that made them systematically cheat on their diesel emissions tests,
+帮助大众系统系逃避排放检测的大众的工程师
+
+2:02:37.440,2:02:40.340
+on their pollution tests, ended up in jail
+最终宣判入狱
+
+2:02:40.340,2:02:44.780
+Not because it was their decision to cheat on the tests
+做测试欺诈决定的不是工程师，
+
+2:02:44.780,2:02:48.120
+But because their manager told them to write their code
+是经理要求他们这么做的
+
+2:02:48.120,2:02:54.000
+and they wrote the code and therefore they 
+ were the ones that ended up being criminally responsible
+但代码是他们写的，所以他们被要求承担责任
+
+2:02:54.000,2:02:56.500
+and they were the ones that were jailed, right?
+他们成为了入狱者
+
+2:02:56.500,2:03:06.840
+so if you do in some way a shitty thing that ends up causing trouble, that can absolutely come back around and get you in trouble as well
+如果你做了很烂的伤害人的事，最终你也难逃惩罚
+
+2:03:06.840,2:03:10.540
+Sometimes it can cause huge amounts of trouble.
+有时造成的伤害会非常大
+
+2:03:10.540,2:03:22.520
+So if we go back to World War two right, then this was one of the first great opportunities for IBM to show off their amazing tabulating system
+时间回到二战，这是IBM向世界展示他们优秀的表格数据处理系统的机遇
+
+2:03:22.520,2:03:36.180
+and they had a huge client in Nazi, Germany and Nazi Germany used this amazing new tabulating system to encode all of the different types of Jews that they had in the country and all the different types of problem people
+IBM的大客户是德国法西斯，这个系统被用来编辑整理各类犹太人数据和问题人群数据
+
+2:03:36.180,2:03:46.980
+So Jews were eight, gypsies were 12, then different outcomes were coded, executions were 4,  death in a gas chamber was 6
+犹太人编码8， 吉普赛人12，处决编码4，毒气室编码6
+
+2:03:46.980,2:03:59.900
+a Swiss judge ruled that IBM was actively involved facilitating the commission of these crimes against humanity, right?
+瑞士法官宣判IBM积极参与了法西斯的反人类恶行
+
+2:03:59.900,2:04:12.360
+So there are absolutely plenty of examples of people building data processing technology that are directly causing deaths
+所以，绝对有大量事实证明人们创造的数据软件技术被用来造成伤害甚至死亡
+
+2:04:12.360,2:04:14.900
+Sometimes millions of deaths right?
+有时甚至是上百万级的
+
+2:04:14.900,2:04:22.140
+So we don't want to be one of those people and so you might have thought, Oh You know I'm just creating some data processing software
+我们不希望成为这样的人，你可能会想我只是在做软件
+
+2:04:22.140,2:04:27.640
+and somebody else is thinking I'm just the sales person and somebody else is thinking I'm just the biz dev person opening new markets,
+其他人会想我只是销售，我只是市场营销
+
+2:04:27.640,2:04:29.180
+but it all comes together. Right?
+但全部殊途同归
+
+2:04:29.180,2:04:39.140
+So we need to care, and So one of the things we need to care about is getting humans back in the loop, right?
+我们需要关注，一个方法是让人类回到这个决策循环中来
+
+2:04:39.140,2:04:44.540
+And so when we pull humans out of the loop is one of the first times that trouble happens
+当人类被从这个决策流程中剥离后，问题就来了
+
+2:04:44.540,2:05:00.540
+I don't know if you remember. I remember this very clearly, when I first heard that Facebook was firing the human editors that were responsible for basically curating the news that ended up on the Facebook pages
+我还清晰记得当脸谱网宣布裁剪新闻的人工编辑时
+
+2:05:00.540,2:05:05.360
+And I got a say at the time, I thought that's a recipe for disaster,
+我当时有说过，这是灾难的前奏
+
+2:05:05.360,2:05:12.660
+because I've seen again and again that humans can be the person in the loop that can realize: this isn't right
+因为我反复看到人类才是这个决策过程中能发现问题的关键因素
+
+2:05:12.660,2:05:20.360
+You know, it's very hard to create an algorithm that can recognize: this isn't right or else humans are very good at that
+创建一个算法来发现伦理问题比较难，但人类在这方面上很擅长
+
+2:05:20.360,2:05:28.220
+and we saw that's what happened right after Facebook fired two human editors, the nature of stories on Facebook dramatically changed
+我们看见的问题的发生，但人类编辑裁撤后，脸谱网的新闻内容发生了巨大变化
+
+2:05:28.220,2:05:37.840
+right you started seeing this proliferation of conspiracy theories and the kind of the algorithms went crazy with recommending more and more controversial topics.
+你开始发现阴谋论快速滋生，算法疯狂的推荐有争议的内容
+
+2:05:37.840,2:05:45.640
+And of course that changed people's consumption behavior causing them to want more and more controversial topics
+这反过来刺激用户点击更多有争议的内容
+
+2:05:45.640,2:05:57.540
+So we're, one of the really interesting places, this comes in, and Cathy O'Neil who's got a great book called weapons of mass destruction. Thank you, Rachel
+Cathy O'Neil的书《大规模杀伤性武器》里面讲述一些有意思的观点和案例
+
+2:05:57.540,2:06:07.220
+and many others have pointed out is that what happens to algorithms is that they end up impacting people
+很多人指出算法最终都影响了人的行为
+
+2:06:07.220,2:06:11.520
+for example Compass sentencing guidelines go to a judge
+例如，Compass给予法官的审判指南
+
+2:06:11.520,2:06:15.880
+now you can say the algorithm is very good.
+你可以说现在的算法都很厉害
+
+2:06:15.880,2:06:19.560
+Well I mean, in Compass' case, it isn't, it actually turned out to be about as bad as random
+但在Compass案例中，却差的很随机无异
+
+2:06:19.560,2:06:23.540
+Because it's a black box and all that.
+因为这是黑箱等等
+
+2:06:23.540,2:06:28.420
+But even if it was very good, you could then say well, you know, the judge is getting the algorithm
+如果算法效果不错，你可能会说，这里的法官用的是算法
+
+2:06:28.420,2:06:32.940
+Otherwise, they're just be getting a person , people also give bad advice. So what?
+不然，他们也会听取其他人的意见，人也有给坏意见的时候，有什么区别吗？
+
+2:06:32.940,2:06:35.520
+humans respond differently to algorithms
+有，人类在反馈时，不同于算法
+
+2:06:35.520,2:06:42.700
+It's very common particularly for a human that is not very familiar with the technology themselves like a judge
+对于不熟悉技术的法官而言，很常见的行为是
+
+2:06:42.700,2:06:45.840
+Just see like, oh, that's what the computer says
+法官：好，这是算法的推荐
+
+2:06:45.840,2:06:49.860
+The computer looked it up and it figured this out right?
+电脑吃进数据，给出这个结果
+
+2:06:49.860,2:07:00.240
+It's extremely difficult to get a non-technical audience to look at a computer recommendation and come up with a nuanced decision-making process
+对于非技术人员，很难于将电脑推荐融入自己的决策流程
+
+2:07:00.240,2:07:07.900
+so, what we see is that algorithms are often put into place with no appeals process
+所以，我们常见算法在无反馈无抗议的流程中出现
+
+2:07:07.900,2:07:12.620
+They're often used to massively scale up decision making systems
+它们常被用于大规模决策系统
+
+2:07:12.620,2:07:14.260
+Because they're cheap
+因为它们廉价
+
+2:07:14.260,2:07:21.080
+and then the people that are using the Atlas of those algorithms tend to give them more credence than they deserve
+而人们在使用这些系统是倾向于给予它们不应该有的过多的信任
+
+2:07:21.080,2:07:26.100
+because very often they're being used by people that don't have the technical competence to judge them themselves
+因为使用者往往缺乏判断系统好坏的能力
+
+2:07:26.100,2:07:33.860
+So great example right, was here's an example of somebody, who lost their health care,
+这里有一个案例，她因为算法失去了医疗保险
+
+2:07:33.860,2:07:42.680
+and they lost their health care because of an error in a new algorithm that was systematically failing to recognize
+因为一个新算法中的一个错误导致系统性的无法
+
+2:07:42.680,2:07:51.660
+that there are many people that need help with was it Alzheimer's, Cerebral palsy and diabetes. Thanks Rachel
+识别需要帮助的患有脑性麻痹和糖尿病的患者。谢谢Rachel
+
+2:07:51.660,2:08:00.560
+and So this system which had this this error that was later discovered, was cutting off these people from the home care that they needed
+这个系统因为这个错误将这些患者踢出家庭呵护名单
+
+2:08:00.560,2:08:08.720
+So that cerebal palsey victims no longer had the care they needed, so their life was destroyed basically,
+脑性瘫痪患者无法获得所需的照顾，直接毁坏了他们的生活
+
+2:08:08.720,2:08:16.280
+and so when the person that created that algorithm with the error was asked about this, and was specifically said
+当这个出错算法的程序员被问及
+
+2:08:16.280,2:08:24.040
+should they have found a better way to communicate the system, the strengths the failures, and so forth.
+是否应该采取更好的方法来与系统沟通，来发现其优势劣势，等等时
+
+2:08:24.040,2:08:27.080
+He said yeah, I should probably also dust under my bed
+他说是的，但为什么我需要在意呢？
+
+2:08:27.080,2:08:34.160
+That was there. That was the level of interest they had and this is extremely common
+这就是这些程序员对此的关心程度，而且这种现象非常常见
+
+2:08:34.160,2:08:46.180
+I hear this all the time and it's much easier to kind of see it from afar and say okay after the problems happened. I can see that that's a really shitty thing to say, but it can be very difficult, when you're kind of in the middle of it.
+这样的事情很多，而且事后很容以发现。但是身处其中时，则没那么容易发现问题所在
+
+2:08:46.180,2:08:58.220
+I just want to say one more thing about that example and that's that this was a case where it was separate, there was someone who created the algorithm, then I think different people implemented the software
+补充一点，这个例子中，算法是一个人写的，软件则是另一个人
+
+2:08:58.220,2:09:05.040
+and this is in use in over half of the 50 states and then there was also the particular policy decisions made by that state
+美国一半地区都使用了这个系统，而且还有些特定政策也有影响
+
+2:09:05.040,2:09:13.780
+and so there this is one of those situations where nobody felt responsible because the algorithm creators like oh, no, it's the policy decisions of the state that were bad, you know,
+因此，没人主动承担责任，算法说是政策问题，
+
+2:09:13.780,2:09:21.120
+and the state can be like oh, no, it's the ones who implemented the software and so everyone's just kind of pointing fingers and not taking responsibility
+政策人士说是算法的人的问题，大家相互指责，推卸责任
+
+2:09:21.120,2:09:39.360
+and you know in some ways maybe it's unfair but I would argue the person who is creating the dataset and the person who is implementing the algorithm is the person best placed to get out there and say hey here are the things you need to be careful of
+这听起来不公平，但我认为创建数据和执行算法的人应该站出来参与其中努力规避和解决问题
+
+2:09:39.360,2:09:43.080
+and Make sure that they are part of the implementation process
+确保他们成为执行流程中的组成部分
+
+2:09:43.080,2:09:47.040
+So we've also seen this with YouTube, right
+YouTube也有类似问题
+
+2:09:47.040,2:09:54.180
+It's kind of similar to what happened with Facebook and we're now seeing with heard examples of students watching the fastai courses,
+它的问题与Facebook相似，一些学习fastai课程的学员
+
+2:09:54.180,2:10:04.800
+who say hey Jeremy and Rachel, watching the fastai courses really enjoyed them, and at the end of one of them the YouTube autoplay fed me across to a conspiracy theory
+他们说Jeremy， Rachel，我们很享受这门课但是YouTube自动播放结束时却播放了阴谋论的视频
+
+2:10:04.800,2:10:12.760
+and what happens is that once the system decides that you like the conspiracy theories,  it's going to just feed you more and more
+一旦系统认为你喜欢阴谋论，它将持续给你更多的内容
+
+2:10:12.760,2:10:21.840
+and then what happens is that, please come on, just briefly you don't even have to like conspiracy theories
+快速补充一点，你甚至不需要喜欢阴谋论
+
+2:10:21.840,2:10:27.380
+The goal is to get as many people hooked on conspiracy theories as possible as what the algorithms trying to do
+算法的目的就是让更多的人与阴谋论关联上
+
+2:10:27.380,2:10:30.720
+Kind of whether or not you've expressed interest, right?
+至于你是否感兴趣并不重要
+
+2:10:30.720,2:10:35.300
+And so the interesting thing again is I know plenty of people involved in YouTube's recommendation systems
+有趣的是，我认识很多在YouTube上做推荐系统的人
+
+2:10:35.300,2:10:40.660
+none of them are wanting to promote conspiracy theories, but people click on them, right and
+但是他们并不是要推广阴谋论，但人们会去点击
+
+2:10:40.660,2:10:51.420
+and people share them and what tends to happen is also people that are into conspiracy theories consume a lot more YouTube media
+人们也分享这些内容，而且那些喜欢阴谋论的人也在YouTube上看大量的其他内容
+
+2:10:51.420,2:10:59.140
+So it actually is very good at finding a market that watches a lot of hours of YouTube and then it makes that market watch even more
+因此，这个算法是很擅长找出那些大量看YouTube的人群，并想办法让他们看更多内容
+
+2:10:59.140,2:11:10.280
+so this is an example of a feedback loop and The New York Times is now describing YouTube is perhaps the most powerful radicalizing instrument of the 21st century
+所以，这是一个反馈系统。最近纽约时报将YouTube比喻成21世界最强大的极端化工具
+
+2:11:10.280,2:11:21.420
+I can tell you my friends that worked on the YouTube recommendation system did not think they were creating the most powerful radicalizing instrument of the 21st century
+我能告诉你的是我在YouTube的朋友并不认为他们在创造极端化工具
+
+2:11:21.420,2:11:27.620
+and to be honest most of them today when I talk to them still think they're not
+说实话，他们中的大多数依旧认为他们没有在创造这样的工具
+
+2:11:27.620,2:11:39.340
+they think it's all bullshit, you know, not all of them, but a lot of them now are at the point where they just feel like they're the victims here people are unfairly, you know, they don't get it. They don't understand what we're trying to do
+他们中的一些人认为这些指责都是无中生有，且认为他们才是受害者，他们不明白，也不理解我们在努力做的事
+
+2:11:39.340,2:11:43.280
+It's very very difficult, when you are right out there in the heart of it.
+对于那些身处其中的人，这是很难理解的
+
+2:11:43.280,2:11:50.640
+So you've got to be thinking from right at the start. What are the possible unintended consequences of what you're working on
+你需要从头开始思考，你所做的可能会产生怎样的意想不到的结果
+
+2:11:50.640,2:11:56.540
+and as the technical people involved, how can you get out in front and make sure that people are aware of them?
+作为技术专家，你应该如何站出来帮助大家了解潜在的危害可能
+
+2:11:56.540,2:12:03.080
+And I just also need to say that in particular many of these conspiracy theories are promoting white supremacy
+我还想说的是，很多阴谋论都在推崇白人至上言论
+
+2:12:03.080,2:12:14.100
+They're you know, kind of far-right, kind of nationalism, Anti-science, and I think you know, maybe five or ten years ago. I would have thought conspiracy theories are more a more fringe thing.
+例如，极右翼言论，民粹主义，反科学，如果是5-10年前，我会认为这些阴谋论只有极少数人感兴趣
+
+2:12:14.100,2:12:19.020
+But we're seeing the kind of huge societal impact it can have for many people to believe these
+但是新媒体的影响力让非常多的人开始相信这些阴谋论
+
+2:12:19.020,2:12:25.520
+No and you know partly it's you see them on YouTube all the time. It starts to feel a lot more normal, right?
+而且因为你反复看到这些言论在YouTube上，会让你觉得这些内容很正常
+
+2:12:25.520,2:12:38.340
+so one of the things that people are doing
+to try to say like how to fix this problem is to explicitly get involved in talking to the people who might or will be impacted by the kind of decision making processes that you're enabling
+所以一种解决问题的方法就是直接介入参与那些对决策流程有影响力的人的对话交流
+
+2:12:38.340,2:12:55.520
+So for example, there was a really cool thing recently where literally statisticians and data scientists got together with people who had been inside the criminal system, ie had gone through the the bail and sentencing process of criminals themselves
+例如，最近的一个很酷的例子，一群统计学家，数据科学家与一线审判的法务人员合作
+
+2:12:55.520,2:13:00.080
+and talking to the lawyers who worked with them and put them together with the data scientists
+也包括律师，大家一起
+
+2:13:00.080,2:13:11.640
+and actually kind of put together a timeline of how exactly does it work, and where exactly the other places that there are inputs and how do people respond to them and who's involved, this is really cool. Right?
+制定了一个时间表来描述这个算法系统是如何工作的，系统的输入输出是什么，以及人们是如何反馈的。这实在是很棒
+
+2:13:11.640,2:13:19.960
+This is the only way for you as a kind of a data product developer to actually know how your data products going to be working
+这是你作为数据产品开发者唯一能了解你的产品是如何工作的唯一的方法
+
+2:13:19.960,2:13:25.240
+a really great example of a somebody who did a great job here was Evan Estola at Meetup
+这里有一个很棒的例子，是 Evan Estola
+
+2:13:25.240,2:13:37.900
+who said hey a lot of men are going to our tech meetups and If we use a recommendation system naively it's going to recommend more tech meetups to man
+他说我们有很多男性与会者，但如果幼稚的使用推荐系统，这将推荐更多男性的参与
+
+2:13:37.900,2:13:43.980
+which is going to cause more men to go to them, and then when women do try to go, they'll be like Oh my god, there's so many men here.
+而当女性尝试参与时，突然发现这里的男性太多了
+
+2:13:43.980,2:13:54.100
+We're just going to cause more men to go to the tech meetups. Yeah, yeah so showing recommendations to men and therefore not showing them to women yes, yeah
+所以，这个系统会推荐给男性，而不是女性
+
+2:13:54.100,2:14:02.060
+So so what Evan at meetup decided was to make an explicit product decision
+所以，Evan觉得作出明确的产品修改决定
+
+2:14:02.060,2:14:08.420
+That this would not even be representing the actual true preferences of people
+避开现实的参与状况
+
+2:14:08.420,2:14:13.800
+It would be creating a runaway feedback loop. So let's explicitly stop it right before it happens,
+这就创造了一个失控的反馈回路，这样就能明确阻止它（更多推荐给男性）的发生
+
+2:14:13.800,2:14:22.960
+and and not recommend less meetups to women and tech meetups to women and more tech meetups to men
+不再更多推荐给男性，更少推荐给女性
+
+2:14:22.960,2:14:30.480
+And so I think that's that's just it's really cool. It's like it's saying we don't have to be slaves to the algorithm, we actually get to decide
+这很棒，因为这种做法，就像是在说，我们不是算法的奴隶，我们有决定权
+
+2:14:30.480,2:14:36.420
+another thing that people can do to help is regulation
+另一件可以做的事，就是法规监管
+
+2:14:36.420,2:14:42.540
+and normally when we kind of talk about regulation, there's a natural reaction of like how do you regulate these things?
+通常当我们谈论法规监管时，我们的第一反应是这没法监管
+
+2:14:42.540,2:14:53.080
+That's ridiculous. You can't regulate AI but actually when you look at it again and again and this fantastic paper core data sheets for datasets has lots of examples of this
+这很荒谬，你无法监管AI，但事实上，如这篇论文所举的很多例子证明监管是可行的
+
+2:14:53.080,2:14:59.980
+there are many many examples of industries where people thought they couldn't be regulated people thought that's just how it was,
+论文中例举大量案例，一开始人们认为监管不可能，事情无法改变
+
+2:14:59.980,2:15:06.180
+like cars, people died in cars all the time, because they literally had sharp metal knobs on dashboards
+例如，汽车，人们大量被车里尖锐的金属把手，旋转按钮，刺伤死亡
+
+2:15:06.180,2:15:16.740
+steering columns weren't collapsible and all of the discussion in the community was that's just how cars are and when people died in cars It's because of the people
+但所有言论都是说汽车就是这样，人们死于车中是因为人自己的问题
+
+2:15:16.740,2:15:27.280
+but then eventually the regulations did come in and today driving is dramatically safer, Like dozens and dozens of times safer than it was before
+但是最终监管到位后，开车变得很安全，比过去安全数十倍上百倍
+
+2:15:27.280,2:15:30.520
+right so often there are things we can do through policy
+所以，通过监管法规，是可以有所作为的
+
+2:15:30.520,2:15:40.840
+so to summarize. We are part of 0.3 to 0.5% of the world that knows how to code
+总结一下，我们属于0.3-0.5%的人口会编程，
+
+2:15:40.920,2:15:50.080
+All right. We have a skill that very few other people. Do not only that we now know how to code deep learning algorithms, which is like the most powerful kind of code I know 
+编程是一项稀有既能，而深度学习又是我所知道的最强大的代码
+
+2:15:50.080,2:15:59.540
+So I'm hoping that we can explicitly think about like at least not making the world worse and perhaps explicitly making it better, right?
+我希望我们要主动努力让这个世界更好，而不是更差
+
+2:15:59.540,2:16:12.280
+and so why is this interesting to you as an audience in particular, and that's because fastai in particular is trying to make it easy for domain experts to use deep learning.
+为什么我们作为听众对此感兴趣，因为fastai正努力让各行业的专家能轻松使用深度学习
+
+2:16:12.280,2:16:18.860
+And so this picture of the goats here is an example of one of our international fellows from a previous course,
+这张图来自我们去年的一个国际fellows的项目
+
+2:16:18.860,2:16:29.940
+who is a goat dairy farmer and told us that they were going to use deep learning on their remote Canadian Island to help study other disease in goats
+他是一个山羊奶农，他正尝试用深度学习来帮助研究山羊的疾病
+
+2:16:29.940,2:16:36.400
+to me This is a great example of like a domain experts problem which nobody else even knows about,
+对我而言，这是一个极好的例子，一个领域的专家关注的一个无人知晓的问题
+
+2:16:36.400,2:16:39.740
+let alone known as a computer vision problem that can be solved with deep learning
+更不用说将其转化为机器视觉问题来用深度学习去解决
+
+2:16:39.740,2:16:52.600
+So in your field whatever it is, you probably know a lot more now about the opportunities in your field to make it a hell of a lot better than it was before
+所以，在你的领域里，你可能了解很多可以大幅改进的项目和机遇
+
+2:16:52.600,2:16:55.880
+You're probably nearly come up with all kinds of cool product ideas
+你可能有各种各样的很酷产品的想法
+
+2:16:55.880,2:17:01.540
+Right, maybe build a startup or create a new product group in your company or whatever
+也许做一个初创公司，或者在公司内部创建一个产品项目，等等
+
+2:17:01.540,2:17:09.820
+but also let us be thinking about what that's going to mean in practice, and think about where can you put humans in the loop, right?
+但同时也让我们思考这些行为的结果会带来怎样的影响，如何将人带入这个决策系统中
+
+2:17:09.920,2:17:17.780
+Where can you put those pressure release valves who are the people you can talk to who could be impacted who could help you understand?
+我们在哪里安置解压阀，我们可以和哪些人探讨问题，哪些人会受到较大影响，谁能帮助我们更好理解
+
+2:17:17.780,2:17:24.900
+Right and get the kind of humanities folks involved to understand history and psychology and sociology and so forth
+让人文社科领域的专家也参与进来，来理解一系列的历史，心理和社会方面的影响
+
+2:17:24.900,2:17:34.520
+So, that's our Plea to you if you've got this far you're definitely at a point now where you're ready to you know make a serious impact on the world. 
+这就是我们的倡议，如果你已经学到了这一步，你有能力也有必要认真思考这些问题
+
+2:17:34.520,2:17:39.100
+So I hope we can make sure that that's a positive impact. See you next week
+我希望你们的贡献和努力会产生积极的社会影响！下周见
