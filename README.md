@@ -21,12 +21,12 @@ If you are already a main contributor and really love to do more, please apply t
 
 ## 项目分解 Project details
 #### 工作路径1
-大家可以从第七课的[英翻中]()开始，英文的字幕已经处理好了，大家只需对照英文翻译中文即可。
+大家可以从第七课的[英翻中](https://github.com/EmbraceLife/fastai_courses_translation_EN2CN/blob/master/Lesson7ENCN.sbv)开始，英文的字幕已经处理好了，大家只需对照英文翻译中文即可。
 You can start to provide Chinese subtitles based on the provided English subtitles. 
 
 #### 工作路径2
 大家也可以选择提供英文字幕，范例可以参照第七课和第六课的英文字幕标准。
-Or you can help to provide English subtitles from Lesson 1 to Lesson 5, for examples you can see [Lesson6ENCN]() and [Lesson7ENCN]()。 
+Or you can help to provide English subtitles from Lesson 1 to Lesson 5, for examples you can see [Lesson6ENCN](https://github.com/EmbraceLife/fastai_courses_translation_EN2CN/blob/master/Lesson6ENCN.sbv) and [Lesson7ENCN](https://github.com/EmbraceLife/fastai_courses_translation_EN2CN/blob/master/Lesson7ENCN.sbv)。 
 
 #### 工作路径3
 大家还可以帮助改进中文字幕
