@@ -1,5 +1,7 @@
 # fastai_courses_translation_EN2CN
 
+see [this page](https://forums.fast.ai/t/calling-to-join-fastai-en2cn-translation-group/45075) on forum
+
 希望这个repo能够成为大家共同的项目，希望能和所有热爱fastai的小伙伴一起为fastai的视频课程提供中英对照字幕。
 We hope this repo will become a community project, in which all the fastai enthusiasts can work together to provide EN to CN subtitles for fastai videos.  
 
